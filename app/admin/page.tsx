@@ -1,54 +1,277 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Users, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Upload, 
+  List,
+  Mail,
+  TrendingUp
+} from "lucide-react";
+
+interface Stats {
+  total: number;
+  confirmed: number;
+  pending: number;
+  declined: number;
+  dinner: number;
+  cocktail: number;
+  workshopLeather: number;
+  workshopPerfume: number;
+  workshopByTime: {
+    [key: string]: number;
+  };
+}
 
 export default function AdminPage() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-8">
+        <p>載入中...</p>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">管理面板</h1>
-          <p className="text-muted-foreground">RSVP 系統管理</p>
+    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900">管理面板</h1>
+            <p className="text-slate-600 mt-2">活動邀請與 RSVP 管理系統</p>
+          </div>
+          <Link href="/">
+            <Button variant="outline">返回首頁</Button>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link href="/admin/guests">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <List className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">嘉賓列表</h3>
+                    <p className="text-sm text-muted-foreground">查看和管理所有嘉賓</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/import">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-green-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Upload className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">CSV 導入</h3>
+                    <p className="text-sm text-muted-foreground">批量導入嘉賓名單</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-purple-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <Mail className="w-8 h-8 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">發送邀請</h3>
+                  <p className="text-sm text-muted-foreground">批量發送邀請郵件</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Statistics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle>嘉賓管理</CardTitle>
-              <CardDescription>查看和管理嘉賓名單</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                總邀請數
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">查看嘉賓</Button>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{stats?.total || 0}</div>
+                <Users className="w-8 h-8 text-slate-400" />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>導入名單</CardTitle>
-              <CardDescription>上傳 CSV 文件批量導入</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                已確認
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">導入 CSV</Button>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-green-600">{stats?.confirmed || 0}</div>
+                <CheckCircle className="w-8 h-8 text-green-400" />
+              </div>
+              {stats?.total && stats.total > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {((stats.confirmed / stats.total) * 100).toFixed(1)}% 確認率
+                </p>
+              )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>統計數據</CardTitle>
-              <CardDescription>查看 RSVP 統計資訊</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                待回覆
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">總邀請數：</span>
-                  <span className="font-semibold">0</span>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-orange-600">{stats?.pending || 0}</div>
+                <Clock className="w-8 h-8 text-orange-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                已婉拒
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-slate-600">{stats?.declined || 0}</div>
+                <XCircle className="w-8 h-8 text-slate-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Statistics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Event Attendance */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                活動出席統計
+              </CardTitle>
+              <CardDescription>各項活動的參與人數</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                <span className="font-medium">晚宴</span>
+                <Badge variant="secondary" className="text-lg">
+                  {stats?.dinner || 0} 人
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                <span className="font-medium">雞尾酒會</span>
+                <Badge variant="secondary" className="text-lg">
+                  {stats?.cocktail || 0} 人
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Workshop Statistics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>工作坊統計</CardTitle>
+              <CardDescription>各工作坊的報名人數</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">皮革工作坊</span>
+                  <Badge className="bg-amber-600 text-lg">
+                    {stats?.workshopLeather || 0} 人
+                  </Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">已確認：</span>
-                  <span className="font-semibold">0</span>
+                <div className="space-y-1 ml-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">16:30</span>
+                    <span>{stats?.workshopByTime?.['leather-1630'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">17:00</span>
+                    <span>{stats?.workshopByTime?.['leather-1700'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">17:30</span>
+                    <span>{stats?.workshopByTime?.['leather-1730'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">18:00</span>
+                    <span>{stats?.workshopByTime?.['leather-1800'] || 0}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">待回覆：</span>
-                  <span className="font-semibold">0</span>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">香水工作坊</span>
+                  <Badge className="bg-purple-600 text-lg">
+                    {stats?.workshopPerfume || 0} 人
+                  </Badge>
+                </div>
+                <div className="space-y-1 ml-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">16:30</span>
+                    <span>{stats?.workshopByTime?.['perfume-1630'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">17:00</span>
+                    <span>{stats?.workshopByTime?.['perfume-1700'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">17:30</span>
+                    <span>{stats?.workshopByTime?.['perfume-1730'] || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">18:00</span>
+                    <span>{stats?.workshopByTime?.['perfume-1800'] || 0}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -58,5 +281,3 @@ export default function AdminPage() {
     </main>
   );
 }
-
-

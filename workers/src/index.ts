@@ -149,6 +149,44 @@ app.post('/api/rsvp/:token', async (c) => {
   }
 });
 
+// Get statistics (admin only)
+app.get('/api/admin/stats', async (c) => {
+  // TODO: Add authentication middleware
+  
+  try {
+    const guests = await c.env.DB
+      .prepare('SELECT * FROM guests')
+      .all();
+
+    const results = guests.results as any[];
+
+    const stats = {
+      total: results.length,
+      confirmed: results.filter(g => g.rsvp_status === 'confirmed').length,
+      pending: results.filter(g => g.rsvp_status === 'pending').length,
+      declined: results.filter(g => g.rsvp_status === 'declined').length,
+      dinner: results.filter(g => g.dinner === 1).length,
+      cocktail: results.filter(g => g.cocktail === 1).length,
+      workshopLeather: results.filter(g => g.workshop_type === 'leather').length,
+      workshopPerfume: results.filter(g => g.workshop_type === 'perfume').length,
+      workshopByTime: {} as Record<string, number>,
+    };
+
+    // Count by workshop type and time
+    results.forEach(guest => {
+      if (guest.workshop_type && guest.workshop_time) {
+        const key = `${guest.workshop_type}-${guest.workshop_time}`;
+        stats.workshopByTime[key] = (stats.workshopByTime[key] || 0) + 1;
+      }
+    });
+
+    return c.json(stats);
+  } catch (error) {
+    console.error('Database error:', error);
+    return c.json({ error: 'Database error' }, 500);
+  }
+});
+
 // List all guests (admin only)
 app.get('/api/admin/guests', async (c) => {
   // TODO: Add authentication middleware
@@ -162,6 +200,167 @@ app.get('/api/admin/guests', async (c) => {
   } catch (error) {
     console.error('Database error:', error);
     return c.json({ error: 'Database error' }, 500);
+  }
+});
+
+// Import guests from CSV (admin only)
+app.post('/api/admin/import', async (c) => {
+  // TODO: Add authentication middleware
+  
+  try {
+    const body = await c.req.json();
+    const { csvData } = body;
+
+    if (!csvData) {
+      return c.json({ error: 'CSV data is required' }, 400);
+    }
+
+    const lines = csvData.trim().split('\n');
+    if (lines.length < 2) {
+      return c.json({ 
+        success: false,
+        imported: 0,
+        failed: 0,
+        errors: ['CSV 文件至少需要包含標題行和一行數據']
+      }, 400);
+    }
+
+    const headers = lines[0].split(',').map((h: string) => h.trim());
+    const requiredHeaders = ['name', 'email', 'invite_type'];
+    
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    if (missingHeaders.length > 0) {
+      return c.json({
+        success: false,
+        imported: 0,
+        failed: 0,
+        errors: [`缺少必要欄位: ${missingHeaders.join(', ')}`]
+      }, 400);
+    }
+
+    let imported = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const values = line.split(',').map((v: string) => v.trim());
+      const row: Record<string, string> = {};
+      
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+
+      try {
+        const { name, email, company, invite_type } = row;
+
+        if (!name || !email || !invite_type) {
+          errors.push(`第 ${i + 1} 行: 缺少必要欄位`);
+          failed++;
+          continue;
+        }
+
+        if (invite_type !== 'named' && invite_type !== 'company') {
+          errors.push(`第 ${i + 1} 行: invite_type 必須是 named 或 company`);
+          failed++;
+          continue;
+        }
+
+        const token = `token-${crypto.randomUUID()}`;
+        const id = crypto.randomUUID();
+
+        await c.env.DB
+          .prepare(`
+            INSERT INTO guests (
+              id, name, company, email, token, invite_type,
+              rsvp_status, dinner, cocktail, checked_in,
+              created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
+          `)
+          .bind(id, name, company || null, email, token, invite_type)
+          .run();
+
+        imported++;
+      } catch (error) {
+        errors.push(`第 ${i + 1} 行: 導入失敗 - ${error instanceof Error ? error.message : '未知錯誤'}`);
+        failed++;
+      }
+    }
+
+    return c.json({
+      success: imported > 0,
+      imported,
+      failed,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
+    console.error('Import error:', error);
+    return c.json({ error: 'Import failed' }, 500);
+  }
+});
+
+// Export guests to CSV (admin only)
+app.get('/api/admin/export', async (c) => {
+  // TODO: Add authentication middleware
+  
+  try {
+    const guests = await c.env.DB
+      .prepare('SELECT * FROM guests ORDER BY created_at DESC')
+      .all();
+
+    const results = guests.results as any[];
+
+    // CSV headers
+    const headers = [
+      'name', 'company', 'email', 'invite_type', 'rsvp_status',
+      'dinner', 'cocktail', 'workshop_type', 'workshop_time',
+      'checked_in', 'created_at'
+    ];
+
+    // Convert to CSV
+    const csvRows = [headers.join(',')];
+    
+    results.forEach(guest => {
+      const row = headers.map(header => {
+        let value = guest[header];
+        
+        // Convert boolean/number to string
+        if (typeof value === 'number') {
+          if (header === 'dinner' || header === 'cocktail' || header === 'checked_in') {
+            value = value ? 'Yes' : 'No';
+          }
+        }
+        
+        // Handle null values
+        if (value === null || value === undefined) {
+          value = '';
+        }
+        
+        // Escape commas and quotes
+        value = String(value).replace(/"/g, '""');
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          value = `"${value}"`;
+        }
+        
+        return value;
+      });
+      
+      csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+
+    return new Response(csvContent, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="guests-export.csv"',
+      },
+    });
+  } catch (error) {
+    console.error('Export error:', error);
+    return c.json({ error: 'Export failed' }, 500);
   }
 });
 

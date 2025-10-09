@@ -208,10 +208,15 @@ Verification logic:
 - [x] Integrate email sending into RSVP submission flow.
 - **Commit**: `bd540e9` - feat: Complete Phase 3 - Email system and QR code generation (2025-10-09)
 
-### Phase 4 – Admin Panel
-- [ ] Build guest list table + CSV import/export.
-- [ ] Add resend invitation buttons.
-- [ ] Display RSVP statistics (e.g., per workshop slot).
+### Phase 4 – Admin Panel ✅ COMPLETED
+- [x] Build guest list table + CSV import/export.
+- [x] Add resend invitation buttons.
+- [x] Display RSVP statistics (e.g., per workshop slot).
+- [x] Implement admin dashboard with statistics overview.
+- [x] Create CSV import page with validation.
+- [x] Implement CSV export functionality.
+- [x] Add Worker API endpoints (stats, import, export).
+- **Commit**: TBD - feat: Complete Phase 4 - Admin panel and CSV management (2025-10-09)
 
 ### Phase 5 – Check-in Page
 - [ ] Implement QR scan page (html5-qrcode).
