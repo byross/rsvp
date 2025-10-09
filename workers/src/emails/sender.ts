@@ -1,6 +1,5 @@
-// Email sending utilities using Resend
+// Email sending utilities using Resend REST API
 
-import { Resend } from 'resend';
 import { 
   generateNamedGuestInvitationEmail, 
   generateCompanyInvitationEmail,
@@ -44,8 +43,6 @@ export async function sendInvitationEmail(
   params: SendInvitationEmailParams
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const resend = new Resend(config.resendApiKey);
-
     const htmlContent = params.inviteType === 'named'
       ? generateNamedGuestInvitationEmail({
           guestName: params.guestName,
@@ -62,19 +59,29 @@ export async function sendInvitationEmail(
           eventVenue: params.eventVenue,
         });
 
-    const result = await resend.emails.send({
-      from: `${config.fromName} <${config.fromEmail}>`,
-      to: params.to,
-      subject: `【邀請】${params.eventName}`,
-      html: htmlContent,
+    // Use Fetch API instead of Resend SDK for better Cloudflare Workers compatibility
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `${config.fromName} <${config.fromEmail}>`,
+        to: [params.to],
+        subject: `【邀請】${params.eventName}`,
+        html: htmlContent,
+      }),
     });
 
-    if (result.error) {
-      console.error('Resend error:', result.error);
-      return { success: false, error: result.error.message };
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Resend API error:', result);
+      return { success: false, error: result.message || 'Failed to send email' };
     }
 
-    return { success: true, messageId: result.data?.id };
+    return { success: true, messageId: result.id };
   } catch (error) {
     console.error('Send invitation email error:', error);
     return { 
@@ -92,8 +99,6 @@ export async function sendConfirmationEmail(
   params: SendConfirmationEmailParams
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const resend = new Resend(config.resendApiKey);
-
     const htmlContent = generateConfirmationEmail({
       guestName: params.guestName,
       dinner: params.dinner,
@@ -106,19 +111,29 @@ export async function sendConfirmationEmail(
       eventVenue: params.eventVenue,
     });
 
-    const result = await resend.emails.send({
-      from: `${config.fromName} <${config.fromEmail}>`,
-      to: params.to,
-      subject: `【確認】${params.eventName} - 您的 QR Code 入場券`,
-      html: htmlContent,
+    // Use Fetch API instead of Resend SDK for better Cloudflare Workers compatibility
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `${config.fromName} <${config.fromEmail}>`,
+        to: [params.to],
+        subject: `【確認】${params.eventName} - 您的 QR Code 入場券`,
+        html: htmlContent,
+      }),
     });
 
-    if (result.error) {
-      console.error('Resend error:', result.error);
-      return { success: false, error: result.error.message };
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Resend API error:', result);
+      return { success: false, error: result.message || 'Failed to send email' };
     }
 
-    return { success: true, messageId: result.data?.id };
+    return { success: true, messageId: result.id };
   } catch (error) {
     console.error('Send confirmation email error:', error);
     return { 

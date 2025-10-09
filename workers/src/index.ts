@@ -1,10 +1,14 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { generateQRCodeDataURL } from './qr-generator';
+import { generateQRCodeData } from './qr-generator';
+import { generateAndSaveQRCode } from './qr-storage';
 import { sendConfirmationEmail } from './emails/sender';
+import { hashPassword, verifyPassword, generateToken, verifyToken, extractToken } from './auth-utils';
+import { requireAuth, requireSuperAdmin, requireAdmin } from './auth-middleware';
 
 type Bindings = {
   DB: D1Database;
+  QR_BUCKET: R2Bucket;
   ALLOWED_ORIGIN: string;
   // Resend email service
   RESEND_API_KEY: string;
@@ -14,6 +18,8 @@ type Bindings = {
   EVENT_NAME: string;
   EVENT_DATE: string;
   EVENT_VENUE: string;
+  // R2 settings
+  R2_PUBLIC_URL: string;
   // Security
   QR_SECRET: string;
   ADMIN_PASSWORD: string;
@@ -38,6 +44,327 @@ app.get('/', (c) => {
     message: 'RSVP API is running',
     version: '1.0.0'
   });
+});
+
+// ===== Simple Admin Authentication =====
+
+// Simple admin password check
+app.post('/api/admin/login', async (c) => {
+  try {
+    const { password } = await c.req.json();
+    
+    if (!password) {
+      return c.json({ error: 'Password required' }, 400);
+    }
+    
+    if (password === c.env.ADMIN_PASSWORD) {
+      // Generate simple token (base64 encoded timestamp)
+      const token = btoa(`admin:${Date.now()}:${c.env.QR_SECRET}`);
+      return c.json({ 
+        success: true, 
+        token,
+        message: 'Login successful' 
+      });
+    }
+    
+    return c.json({ error: 'Invalid password' }, 401);
+  } catch (error) {
+    console.error('Admin login error:', error);
+    return c.json({ error: 'Login failed' }, 500);
+  }
+});
+
+// Verify admin token (for frontend to check)
+app.post('/api/admin/verify', async (c) => {
+  try {
+    const { token } = await c.req.json();
+    
+    if (!token) {
+      return c.json({ valid: false }, 200);
+    }
+    
+    // Simple verification - check if token format is valid
+    try {
+      const decoded = atob(token);
+      const parts = decoded.split(':');
+      
+      if (parts.length === 3 && parts[0] === 'admin') {
+        const timestamp = parseInt(parts[1]);
+        const now = Date.now();
+        
+        // Token valid for 24 hours
+        if (now - timestamp < 24 * 60 * 60 * 1000) {
+          return c.json({ valid: true });
+        }
+      }
+    } catch (e) {
+      // Invalid token format
+    }
+    
+    return c.json({ valid: false }, 200);
+  } catch (error) {
+    return c.json({ valid: false }, 200);
+  }
+});
+
+// ===== Authentication APIs (Keep for future use) =====
+
+// Initialize first super admin (one-time setup)
+app.post('/api/auth/init', async (c) => {
+  try {
+    // Check if any users exist
+    const existingUsers = await c.env.DB
+      .prepare('SELECT COUNT(*) as count FROM users')
+      .first();
+
+    if (existingUsers && (existingUsers.count as number) > 0) {
+      return c.json({ error: 'System already initialized' }, 400);
+    }
+
+    const { username, email, password, full_name } = await c.req.json();
+
+    if (!username || !email || !password) {
+      return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
+    // Create super admin
+    const userId = `user-super-admin-${crypto.randomUUID()}`;
+    await c.env.DB
+      .prepare(`
+        INSERT INTO users (id, username, email, password_hash, role, full_name, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'super_admin', ?, 1, datetime('now'), datetime('now'))
+      `)
+      .bind(userId, username, email, passwordHash, full_name || 'Super Administrator')
+      .run();
+
+    return c.json({
+      success: true,
+      message: 'Super admin created successfully',
+      user: { id: userId, username, email, role: 'super_admin' }
+    });
+  } catch (error) {
+    console.error('Init error:', error);
+    return c.json({ error: 'Failed to initialize' }, 500);
+  }
+});
+
+// Login
+app.post('/api/auth/login', async (c) => {
+  try {
+    const { username, password } = await c.req.json();
+
+    if (!username || !password) {
+      return c.json({ error: 'Username and password are required' }, 400);
+    }
+
+    // Find user
+    const user = await c.env.DB
+      .prepare('SELECT * FROM users WHERE username = ? AND is_active = 1')
+      .bind(username)
+      .first();
+
+    if (!user) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    // Verify password
+    const isValid = await verifyPassword(password, user.password_hash as string);
+    if (!isValid) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    // Update last login
+    await c.env.DB
+      .prepare('UPDATE users SET last_login = datetime("now") WHERE id = ?')
+      .bind(user.id)
+      .run();
+
+    // Generate token
+    const token = await generateToken(
+      user.id as string,
+      user.username as string,
+      user.role as string,
+      c.env.QR_SECRET
+    );
+
+    return c.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        full_name: user.full_name
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return c.json({ error: 'Login failed' }, 500);
+  }
+});
+
+// Get current user info
+app.get('/api/auth/me', requireAuth, async (c) => {
+  const user = c.get('user');
+  
+  try {
+    const dbUser = await c.env.DB
+      .prepare('SELECT id, username, email, role, full_name, last_login FROM users WHERE id = ?')
+      .bind(user.sub)
+      .first();
+
+    if (!dbUser) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    return c.json({ user: dbUser });
+  } catch (error) {
+    console.error('Get user error:', error);
+    return c.json({ error: 'Failed to get user info' }, 500);
+  }
+});
+
+// ===== User Management APIs (Super Admin Only) =====
+
+// List all users
+app.get('/api/users', requireAuth, requireSuperAdmin, async (c) => {
+  try {
+    const users = await c.env.DB
+      .prepare('SELECT id, username, email, role, full_name, is_active, created_at, last_login FROM users ORDER BY created_at DESC')
+      .all();
+
+    return c.json({ users: users.results });
+  } catch (error) {
+    console.error('List users error:', error);
+    return c.json({ error: 'Failed to list users' }, 500);
+  }
+});
+
+// Create new user
+app.post('/api/users', requireAuth, requireSuperAdmin, async (c) => {
+  try {
+    const { username, email, password, role, full_name } = await c.req.json();
+
+    if (!username || !email || !password || !role) {
+      return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    if (!['admin', 'super_admin'].includes(role)) {
+      return c.json({ error: 'Invalid role' }, 400);
+    }
+
+    // Check if username or email already exists
+    const existing = await c.env.DB
+      .prepare('SELECT id FROM users WHERE username = ? OR email = ?')
+      .bind(username, email)
+      .first();
+
+    if (existing) {
+      return c.json({ error: 'Username or email already exists' }, 409);
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
+    // Create user
+    const userId = `user-${crypto.randomUUID()}`;
+    await c.env.DB
+      .prepare(`
+        INSERT INTO users (id, username, email, password_hash, role, full_name, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))
+      `)
+      .bind(userId, username, email, passwordHash, role, full_name || null)
+      .run();
+
+    return c.json({
+      success: true,
+      user: { id: userId, username, email, role, full_name }
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    return c.json({ error: 'Failed to create user' }, 500);
+  }
+});
+
+// Update user
+app.put('/api/users/:id', requireAuth, requireSuperAdmin, async (c) => {
+  const userId = c.req.param('id');
+  
+  try {
+    const { email, role, full_name, is_active, password } = await c.req.json();
+
+    const updates: string[] = [];
+    const bindings: any[] = [];
+
+    if (email !== undefined) {
+      updates.push('email = ?');
+      bindings.push(email);
+    }
+    if (role !== undefined) {
+      if (!['admin', 'super_admin'].includes(role)) {
+        return c.json({ error: 'Invalid role' }, 400);
+      }
+      updates.push('role = ?');
+      bindings.push(role);
+    }
+    if (full_name !== undefined) {
+      updates.push('full_name = ?');
+      bindings.push(full_name);
+    }
+    if (is_active !== undefined) {
+      updates.push('is_active = ?');
+      bindings.push(is_active ? 1 : 0);
+    }
+    if (password) {
+      const passwordHash = await hashPassword(password);
+      updates.push('password_hash = ?');
+      bindings.push(passwordHash);
+    }
+
+    if (updates.length === 0) {
+      return c.json({ error: 'No fields to update' }, 400);
+    }
+
+    updates.push('updated_at = datetime("now")');
+    bindings.push(userId);
+
+    await c.env.DB
+      .prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...bindings)
+      .run();
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Update user error:', error);
+    return c.json({ error: 'Failed to update user' }, 500);
+  }
+});
+
+// Delete user
+app.delete('/api/users/:id', requireAuth, requireSuperAdmin, async (c) => {
+  const userId = c.req.param('id');
+  const currentUser = c.get('user');
+
+  // Prevent self-deletion
+  if (userId === currentUser.sub) {
+    return c.json({ error: 'Cannot delete your own account' }, 400);
+  }
+
+  try {
+    await c.env.DB
+      .prepare('DELETE FROM users WHERE id = ?')
+      .bind(userId)
+      .run();
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return c.json({ error: 'Failed to delete user' }, 500);
+  }
 });
 
 // Get guest data by token
@@ -103,12 +430,19 @@ app.post('/api/rsvp/:token', async (c) => {
       )
       .run();
 
-    // Generate QR Code
-    const qrCodeDataURL = await generateQRCodeDataURL(
+    // Generate QR Code data and save to R2
+    const qrData = await generateQRCodeData(
       guest.id as string,
       token,
       body.name || guest.name as string,
       c.env.QR_SECRET
+    );
+    
+    const qrCodeUrl = await generateAndSaveQRCode(
+      c.env.QR_BUCKET,
+      guest.id as string,
+      qrData,
+      c.env.R2_PUBLIC_URL
     );
 
     // Send confirmation email
@@ -125,7 +459,7 @@ app.post('/api/rsvp/:token', async (c) => {
         cocktail: body.cocktail,
         workshopType: body.workshop_type,
         workshopTime: body.workshop_time,
-        qrCodeDataURL,
+        qrCodeDataURL: qrCodeUrl,
         eventName: c.env.EVENT_NAME,
         eventDate: c.env.EVENT_DATE,
         eventVenue: c.env.EVENT_VENUE,
@@ -150,8 +484,7 @@ app.post('/api/rsvp/:token', async (c) => {
 });
 
 // Get statistics (admin only)
-app.get('/api/admin/stats', async (c) => {
-  // TODO: Add authentication middleware
+app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -188,8 +521,7 @@ app.get('/api/admin/stats', async (c) => {
 });
 
 // List all guests (admin only)
-app.get('/api/admin/guests', async (c) => {
-  // TODO: Add authentication middleware
+app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -204,8 +536,7 @@ app.get('/api/admin/guests', async (c) => {
 });
 
 // Import guests from CSV (admin only)
-app.post('/api/admin/import', async (c) => {
-  // TODO: Add authentication middleware
+app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
   
   try {
     const body = await c.req.json();
@@ -302,8 +633,7 @@ app.post('/api/admin/import', async (c) => {
 });
 
 // Export guests to CSV (admin only)
-app.get('/api/admin/export', async (c) => {
-  // TODO: Add authentication middleware
+app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -375,12 +705,19 @@ app.post('/api/test-email', async (c) => {
 
   try {
     if (type === 'confirmation') {
-      // Generate a test QR code
-      const qrCodeDataURL = await generateQRCodeDataURL(
+      // Generate test QR code and save to R2
+      const qrData = await generateQRCodeData(
         'test-id-123',
         'test-token-001',
         '測試用戶',
         c.env.QR_SECRET
+      );
+      
+      const qrCodeUrl = await generateAndSaveQRCode(
+        c.env.QR_BUCKET,
+        'test-id-123',
+        qrData,
+        c.env.R2_PUBLIC_URL
       );
 
       const result = await sendConfirmationEmail(
@@ -396,7 +733,7 @@ app.post('/api/test-email', async (c) => {
           cocktail: true,
           workshopType: 'leather',
           workshopTime: '1700',
-          qrCodeDataURL,
+          qrCodeDataURL: qrCodeUrl,
           eventName: c.env.EVENT_NAME,
           eventDate: c.env.EVENT_DATE,
           eventVenue: c.env.EVENT_VENUE,
@@ -406,6 +743,7 @@ app.post('/api/test-email', async (c) => {
       return c.json({ 
         success: result.success,
         messageId: result.messageId,
+        qrCodeUrl: qrCodeUrl,
         error: result.error,
       });
     }
@@ -413,7 +751,30 @@ app.post('/api/test-email', async (c) => {
     return c.json({ error: 'Invalid email type' }, 400);
   } catch (error) {
     console.error('Test email error:', error);
-    return c.json({ error: 'Failed to send test email' }, 500);
+    return c.json({ error: 'Failed to send test email', details: error instanceof Error ? error.message : String(error) }, 500);
+  }
+});
+
+// Serve QR code images from R2
+app.get('/qr/:filename', async (c) => {
+  const filename = c.req.param('filename');
+  
+  try {
+    const object = await c.env.QR_BUCKET.get(filename);
+    
+    if (!object) {
+      return c.notFound();
+    }
+
+    return new Response(object.body, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=31536000',
+      },
+    });
+  } catch (error) {
+    console.error('QR code retrieval error:', error);
+    return c.json({ error: 'Failed to retrieve QR code' }, 500);
   }
 });
 

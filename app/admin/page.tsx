@@ -13,8 +13,12 @@ import {
   Upload, 
   List,
   Mail,
-  TrendingUp
+  TrendingUp,
+  LogOut
 } from "lucide-react";
+import AdminAuthGuard from "@/components/AdminAuthGuard";
+import { logout } from "@/lib/auth";
+import { useRouter } from 'next/navigation';
 
 interface Stats {
   total: number;
@@ -31,6 +35,7 @@ interface Stats {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,27 +57,41 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/admin/login');
+  };
+
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8">
-        <p>載入中...</p>
-      </main>
+      <AdminAuthGuard>
+        <main className="flex min-h-screen flex-col items-center justify-center p-8">
+          <p>載入中...</p>
+        </main>
+      </AdminAuthGuard>
     );
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900">管理面板</h1>
-            <p className="text-slate-600 mt-2">活動邀請與 RSVP 管理系統</p>
+    <AdminAuthGuard>
+      <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900">管理面板</h1>
+              <p className="text-slate-600 mt-2">活動邀請與 RSVP 管理系統</p>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/">
+                <Button variant="outline">返回首頁</Button>
+              </Link>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                登出
+              </Button>
+            </div>
           </div>
-          <Link href="/">
-            <Button variant="outline">返回首頁</Button>
-          </Link>
-        </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -279,5 +298,6 @@ export default function AdminPage() {
         </div>
       </div>
     </main>
+    </AdminAuthGuard>
   );
 }

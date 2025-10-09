@@ -1,12 +1,19 @@
 name = "rsvp-api"
 main = "workers/src/index.ts"
 compatibility_date = "2024-01-01"
+account_id = "30a65543f36c726f6ccd663476bed81e"
 
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "rsvp-db"
-database_id = "" # Will be filled after creating the database
+database_id = "c9ced905-3c7d-4d44-8b72-aed06058b8b5"
+
+# R2 Bucket for QR codes
+[[r2_buckets]]
+binding = "QR_BUCKET"
+bucket_name = "rsvp-qr-codes"
+preview_bucket_name = "rsvp-qr-codes-preview"
 
 # Environment variables
 # Note: Sensitive values (RESEND_API_KEY, ADMIN_PASSWORD, QR_SECRET) 
@@ -17,10 +24,12 @@ database_id = "" # Will be filled after creating the database
 # Non-sensitive configuration
 [vars]
 RESEND_FROM_EMAIL = "onboarding@resend.dev"
-RESEND_FROM_NAME = "活動邀請系統"
-EVENT_NAME = "活動邀請"
+RESEND_FROM_NAME = "NetCraft Gala Dinner 邀請系統"
+EVENT_NAME = "天網(NetCraft)三十週年晚宴"
 EVENT_DATE = "2025-10-15"
 EVENT_VENUE = "活動場地"
+# R2 Worker URL (QR codes will be served through Worker)
+R2_PUBLIC_URL = "https://rsvp-api.byross-tech.workers.dev"
 
 # CORS settings for Next.js frontend
 [env.production]

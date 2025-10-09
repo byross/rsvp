@@ -1,7 +1,5 @@
 // QR Code generation and validation utilities
 
-import QRCode from 'qrcode';
-
 interface QRCodePayload {
   id: string;
   token: string;
@@ -38,9 +36,9 @@ export async function verifyChecksum(
 }
 
 /**
- * Generate QR code data URL (base64)
+ * Generate QR code data string (to be encoded as QR image)
  */
-export async function generateQRCodeDataURL(
+export async function generateQRCodeData(
   guestId: string,
   token: string,
   name: string,
@@ -63,19 +61,43 @@ export async function generateQRCodeDataURL(
     checksum,
   });
 
-  // Generate QR code as data URL
-  const dataURL = await QRCode.toDataURL(qrData, {
-    errorCorrectionLevel: 'H',
-    type: 'image/png',
-    width: 300,
-    margin: 2,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF',
-    },
-  });
+  return qrData;
+}
 
-  return dataURL;
+/**
+ * Generate QR code data URL (base64) - Legacy method for backward compatibility
+ * Using external API for Cloudflare Workers compatibility
+ */
+export async function generateQRCodeDataURL(
+  guestId: string,
+  token: string,
+  name: string,
+  secret: string
+): Promise<string> {
+  const qrData = await generateQRCodeData(guestId, token, name, secret);
+
+  try {
+    // Use QR Server API (free and reliable)
+    const encodedData = encodeURIComponent(qrData);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedData}&format=png`;
+    
+    // Fetch the QR code image
+    const response = await fetch(qrUrl);
+    if (!response.ok) {
+      throw new Error('Failed to generate QR code');
+    }
+
+    // Convert to base64 data URL
+    const blob = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(blob)));
+    const dataURL = `data:image/png;base64,${base64}`;
+
+    return dataURL;
+  } catch (error) {
+    console.error('QR code generation error:', error);
+    // Fallback: return a placeholder
+    return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  }
 }
 
 /**
