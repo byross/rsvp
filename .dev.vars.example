@@ -1,15 +1,40 @@
-# Cloudflare Workers environment variables for local development
-# Copy this file to .dev.vars and fill in your values
+# Cloudflare Workers 本地開發環境變數範例
+# 複製此文件為 .dev.vars 並填入你的實際值
 
-# CORS allowed origin
+# CORS 允許的來源
 ALLOWED_ORIGIN=http://localhost:3000
 
-# Resend API key (for email sending)
-# RESEND_API_KEY=re_xxxxxxxxxxxxx
+# ========================================
+# Resend 郵件服務設置
+# ========================================
+# 在 https://resend.com 註冊並獲取 API Key
+RESEND_API_KEY=re_xxxxxxxxxxxxx
 
-# Admin password (simple auth)
-# ADMIN_PASSWORD=your_secure_password
+# 郵件發送者設置
+# 測試環境可用: onboarding@resend.dev
+# 正式環境需驗證域名: noreply@yourdomain.com
+RESEND_FROM_EMAIL=onboarding@resend.dev
+RESEND_FROM_NAME=活動邀請系統
 
-# QR Code checksum secret
-# QR_SECRET=your_secret_key_for_checksum
+# ========================================
+# 活動資訊
+# ========================================
+EVENT_NAME=活動邀請
+EVENT_DATE=2025-10-15
+EVENT_VENUE=活動場地
 
+# ========================================
+# 安全設置
+# ========================================
+# QR Code 驗證密鑰（生成隨機字串）
+QR_SECRET=your_random_secret_key_here
+
+# Admin 密碼（簡單認證，生產環境請改用強密碼）
+ADMIN_PASSWORD=your_secure_password
+
+# ========================================
+# 提示：
+# 1. .dev.vars 已在 .gitignore，不會 commit
+# 2. 生產環境用 wrangler secret 命令設置
+# 3. 不要在任何 commit 的文件中暴露敏感資料
+# ========================================

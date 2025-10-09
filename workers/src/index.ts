@@ -1,9 +1,22 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { generateQRCodeDataURL } from './qr-generator';
+import { sendConfirmationEmail } from './emails/sender';
 
 type Bindings = {
   DB: D1Database;
   ALLOWED_ORIGIN: string;
+  // Resend email service
+  RESEND_API_KEY: string;
+  RESEND_FROM_EMAIL: string;
+  RESEND_FROM_NAME: string;
+  // Event information
+  EVENT_NAME: string;
+  EVENT_DATE: string;
+  EVENT_VENUE: string;
+  // Security
+  QR_SECRET: string;
+  ADMIN_PASSWORD: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -90,9 +103,45 @@ app.post('/api/rsvp/:token', async (c) => {
       )
       .run();
 
+    // Generate QR Code
+    const qrCodeDataURL = await generateQRCodeDataURL(
+      guest.id as string,
+      token,
+      body.name || guest.name as string,
+      c.env.QR_SECRET
+    );
+
+    // Send confirmation email
+    const emailResult = await sendConfirmationEmail(
+      {
+        resendApiKey: c.env.RESEND_API_KEY,
+        fromEmail: c.env.RESEND_FROM_EMAIL,
+        fromName: c.env.RESEND_FROM_NAME,
+      },
+      {
+        to: guest.email as string,
+        guestName: body.name || guest.name as string,
+        dinner: body.dinner,
+        cocktail: body.cocktail,
+        workshopType: body.workshop_type,
+        workshopTime: body.workshop_time,
+        qrCodeDataURL,
+        eventName: c.env.EVENT_NAME,
+        eventDate: c.env.EVENT_DATE,
+        eventVenue: c.env.EVENT_VENUE,
+      }
+    );
+
+    if (!emailResult.success) {
+      console.error('Failed to send confirmation email:', emailResult.error);
+      // Continue even if email fails - RSVP is already saved
+    }
+
     return c.json({ 
       success: true, 
-      message: 'RSVP submitted successfully' 
+      message: 'RSVP submitted successfully',
+      emailSent: emailResult.success,
+      messageId: emailResult.messageId,
     });
   } catch (error) {
     console.error('Database error:', error);
@@ -113,6 +162,59 @@ app.get('/api/admin/guests', async (c) => {
   } catch (error) {
     console.error('Database error:', error);
     return c.json({ error: 'Database error' }, 500);
+  }
+});
+
+// Test email sending (for development only)
+app.post('/api/test-email', async (c) => {
+  const body = await c.req.json();
+  const { email, type = 'confirmation' } = body;
+
+  if (!email) {
+    return c.json({ error: 'Email is required' }, 400);
+  }
+
+  try {
+    if (type === 'confirmation') {
+      // Generate a test QR code
+      const qrCodeDataURL = await generateQRCodeDataURL(
+        'test-id-123',
+        'test-token-001',
+        '測試用戶',
+        c.env.QR_SECRET
+      );
+
+      const result = await sendConfirmationEmail(
+        {
+          resendApiKey: c.env.RESEND_API_KEY,
+          fromEmail: c.env.RESEND_FROM_EMAIL,
+          fromName: c.env.RESEND_FROM_NAME,
+        },
+        {
+          to: email,
+          guestName: '測試用戶',
+          dinner: true,
+          cocktail: true,
+          workshopType: 'leather',
+          workshopTime: '1700',
+          qrCodeDataURL,
+          eventName: c.env.EVENT_NAME,
+          eventDate: c.env.EVENT_DATE,
+          eventVenue: c.env.EVENT_VENUE,
+        }
+      );
+
+      return c.json({ 
+        success: result.success,
+        messageId: result.messageId,
+        error: result.error,
+      });
+    }
+
+    return c.json({ error: 'Invalid email type' }, 400);
+  } catch (error) {
+    console.error('Test email error:', error);
+    return c.json({ error: 'Failed to send test email' }, 500);
   }
 });
 

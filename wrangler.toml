@@ -8,6 +8,20 @@ binding = "DB"
 database_name = "rsvp-db"
 database_id = "" # Will be filled after creating the database
 
+# Environment variables
+# Note: Sensitive values (RESEND_API_KEY, ADMIN_PASSWORD, QR_SECRET) 
+# should be set via:
+# - Local: .dev.vars file (not committed)
+# - Production: wrangler secret put command
+
+# Non-sensitive configuration
+[vars]
+RESEND_FROM_EMAIL = "onboarding@resend.dev"
+RESEND_FROM_NAME = "活動邀請系統"
+EVENT_NAME = "活動邀請"
+EVENT_DATE = "2025-10-15"
+EVENT_VENUE = "活動場地"
+
 # CORS settings for Next.js frontend
 [env.production]
 vars = { ALLOWED_ORIGIN = "https://your-domain.com" }

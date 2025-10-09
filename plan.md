@@ -200,10 +200,13 @@ Verification logic:
 - [x] Connect to API endpoint.
 - **Commit**: `685e2dc` - feat: Complete Phase 2 - RSVP form implementation (2025-10-09)
 
-### Phase 3 – Email System
-- [ ] Setup Resend domain + API key.
-- [ ] Create invitation + confirmation React Email templates.
-- [ ] Implement Worker endpoint for sending confirmation with QR/PDF.
+### Phase 3 – Email System ✅ COMPLETED
+- [x] Setup Resend domain + API key.
+- [x] Create invitation + confirmation email templates.
+- [x] Implement Worker endpoint for sending confirmation with QR Code.
+- [x] Generate QR Code with checksum validation.
+- [x] Integrate email sending into RSVP submission flow.
+- **Commit**: TBD - feat: Complete Phase 3 - Email system and QR code generation (2025-10-09)
 
 ### Phase 4 – Admin Panel
 - [ ] Build guest list table + CSV import/export.
