@@ -1,0 +1,15 @@
+# Cloudflare Workers environment variables for local development
+# Copy this file to .dev.vars and fill in your values
+
+# CORS allowed origin
+ALLOWED_ORIGIN=http://localhost:3000
+
+# Resend API key (for email sending)
+# RESEND_API_KEY=re_xxxxxxxxxxxxx
+
+# Admin password (simple auth)
+# ADMIN_PASSWORD=your_secure_password
+
+# QR Code checksum secret
+# QR_SECRET=your_secret_key_for_checksum
+
