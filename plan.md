@@ -206,7 +206,7 @@ Verification logic:
 - [x] Implement Worker endpoint for sending confirmation with QR Code.
 - [x] Generate QR Code with checksum validation.
 - [x] Integrate email sending into RSVP submission flow.
-- **Commit**: TBD - feat: Complete Phase 3 - Email system and QR code generation (2025-10-09)
+- **Commit**: `bd540e9` - feat: Complete Phase 3 - Email system and QR code generation (2025-10-09)
 
 ### Phase 4 – Admin Panel
 - [ ] Build guest list table + CSV import/export.
