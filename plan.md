@@ -198,7 +198,7 @@ Verification logic:
 - [x] Add dynamic workshop time selector.
 - [x] Handle "情況一 / 情況二" logic.
 - [x] Connect to API endpoint.
-- **Commit**: TBD - feat: Complete Phase 2 - RSVP form implementation (2025-10-09)
+- **Commit**: `685e2dc` - feat: Complete Phase 2 - RSVP form implementation (2025-10-09)
 
 ### Phase 3 – Email System
 - [ ] Setup Resend domain + API key.
