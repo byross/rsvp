@@ -216,7 +216,7 @@ Verification logic:
 - [x] Create CSV import page with validation.
 - [x] Implement CSV export functionality.
 - [x] Add Worker API endpoints (stats, import, export).
-- **Commit**: TBD - feat: Complete Phase 4 - Admin panel and CSV management (2025-10-09)
+- **Commit**: `58eb6ab` - feat: Complete Phase 4 - Admin panel and CSV management (2025-10-09)
 
 ### Phase 5 – Check-in Page
 - [ ] Implement QR scan page (html5-qrcode).
@@ -241,5 +241,5 @@ Verification logic:
 
 **Owner:** byRoss Design & Tech  
 **Tech Lead:** Ross Chang  
-**Status:** Phase 1 Complete ✅ / Phase 2 In Progress  
+**Status:** Phase 1-4 Complete ✅ / Phase 5-6 Pending  
 **Last Updated:** 2025-10-09
