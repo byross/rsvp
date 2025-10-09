@@ -193,11 +193,12 @@ Verification logic:
 - [x] Create data seeding script for sample guests.
 - **Commit**: `fea9140` - feat: Complete Phase 1 - Project setup and infrastructure (2025-10-08)
 
-### Phase 2 – Frontend RSVP Form
-- [ ] Build RSVP form page (Next.js + Tailwind).
-- [ ] Add dynamic workshop time selector.
-- [ ] Handle “情況一 / 情況二” logic.
-- [ ] Connect to API endpoint.
+### Phase 2 – Frontend RSVP Form ✅ COMPLETED
+- [x] Build RSVP form page (Next.js + Tailwind).
+- [x] Add dynamic workshop time selector.
+- [x] Handle "情況一 / 情況二" logic.
+- [x] Connect to API endpoint.
+- **Commit**: TBD - feat: Complete Phase 2 - RSVP form implementation (2025-10-09)
 
 ### Phase 3 – Email System
 - [ ] Setup Resend domain + API key.

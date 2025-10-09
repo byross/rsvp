@@ -41,7 +41,7 @@ app.get('/api/rsvp/:token', async (c) => {
       return c.json({ error: 'Invalid token' }, 404);
     }
 
-    return c.json(guest);
+    return c.json({ guest });
   } catch (error) {
     console.error('Database error:', error);
     return c.json({ error: 'Database error' }, 500);
@@ -70,6 +70,7 @@ app.post('/api/rsvp/:token', async (c) => {
         UPDATE guests 
         SET 
           name = ?,
+          company = ?,
           rsvp_status = 'confirmed',
           dinner = ?,
           cocktail = ?,
@@ -80,6 +81,7 @@ app.post('/api/rsvp/:token', async (c) => {
       `)
       .bind(
         body.name || guest.name,
+        body.company || guest.company || null,
         body.dinner ? 1 : 0,
         body.cocktail ? 1 : 0,
         body.workshop_type || null,

@@ -138,15 +138,21 @@ npm run db:migrate       # 執行本地 migration
 npm run db:migrate:prod  # 執行生產環境 migration
 ```
 
+## ✅ 最新完成 - Phase 2 (2025-10-09)
+
+### Phase 2 - Frontend RSVP Form ✅ COMPLETED
+- [x] 實現動態表單（情況一/情況二）
+- [x] 工作坊時段選擇器
+- [x] 表單驗證
+- [x] 與 API 整合
+- [x] 確認頁面實現
+- [x] shadcn UI 組件擴展（Input, Label, RadioGroup, Select, Checkbox）
+- [x] Next.js API 代理配置
+- [x] Worker API 端點增強
+
 ## 🔜 下一步開發任務
 
 根據 `plan.md`，接下來需要完成：
-
-### Phase 2 - Frontend RSVP Form
-- [ ] 實現動態表單（情況一/情況二）
-- [ ] 工作坊時段選擇器
-- [ ] 表單驗證
-- [ ] 與 API 整合
 
 ### Phase 3 - Email System
 - [ ] 設置 Resend API
