@@ -187,10 +187,11 @@ Verification logic:
 
 ## 9. Development Tasks (TODO)
 
-### Phase 1 – Setup & DB
-- [ ] Define D1 schema & migrations.
-- [ ] Implement token generator.
-- [ ] Create data seeding script for sample guests.
+### Phase 1 – Setup & DB ✅ COMPLETED
+- [x] Define D1 schema & migrations.
+- [x] Implement token generator.
+- [x] Create data seeding script for sample guests.
+- **Commit**: `fea9140` - feat: Complete Phase 1 - Project setup and infrastructure (2025-10-08)
 
 ### Phase 2 – Frontend RSVP Form
 - [ ] Build RSVP form page (Next.js + Tailwind).
@@ -231,5 +232,5 @@ Verification logic:
 
 **Owner:** byRoss Design & Tech  
 **Tech Lead:** Ross Chang  
-**Status:** Planning v1.0  
-**Last Updated:** 2025-10-08
+**Status:** Phase 1 Complete ✅ / Phase 2 In Progress  
+**Last Updated:** 2025-10-09
