@@ -833,25 +833,40 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
 app.delete('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
   try {
     const guestId = c.req.param('id');
+    console.log('[Delete] Guest ID:', guestId);
+
+    // Check if guest exists first
+    const existingGuest = await c.env.DB.prepare('SELECT id FROM guests WHERE id = ?').bind(guestId).first();
+    
+    if (!existingGuest) {
+      console.log('[Delete] Guest not found');
+      return c.json({ error: 'Guest not found' }, 404);
+    }
 
     // Delete guest
     const result = await c.env.DB.prepare(
       'DELETE FROM guests WHERE id = ?'
     ).bind(guestId).run();
 
-    if (result.success && result.changes > 0) {
+    console.log('[Delete] Result:', result);
+
+    if (result.success) {
       return c.json({ 
         success: true, 
-        message: 'Guest deleted successfully'
+        message: 'Guest deleted successfully',
+        changes: result.changes
       });
-    } else if (result.changes === 0) {
-      return c.json({ error: 'Guest not found' }, 404);
     } else {
       return c.json({ error: 'Failed to delete guest' }, 500);
     }
   } catch (error) {
-    console.error('Delete guest error:', error);
-    return c.json({ error: 'Failed to delete guest' }, 500);
+    console.error('[Delete] Guest error:', error);
+    console.error('[Delete] Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return c.json({ error: 'Failed to delete guest', details: error.message }, 500);
   }
 });
 
