@@ -412,14 +412,18 @@ app.post('/api/rsvp/:token', async (c) => {
       return c.json({ error: 'Invalid token' }, 404);
     }
 
-    // Update guest RSVP data
+    // Determine RSVP status based on dinner and cocktail responses
+    let rsvpStatus = 'confirmed';
+    if (!body.dinner && !body.cocktail) {
+      rsvpStatus = 'declined';
+    }
+
+    // Update guest RSVP data (name and company are not editable by guest)
     await c.env.DB
       .prepare(`
         UPDATE guests 
         SET 
-          name = ?,
-          company = ?,
-          rsvp_status = 'confirmed',
+          rsvp_status = ?,
           dinner = ?,
           cocktail = ?,
           workshop_type = ?,
@@ -428,8 +432,7 @@ app.post('/api/rsvp/:token', async (c) => {
         WHERE token = ?
       `)
       .bind(
-        body.name || guest.name,
-        body.company || guest.company || null,
+        rsvpStatus,
         body.dinner ? 1 : 0,
         body.cocktail ? 1 : 0,
         body.workshop_type || null,
@@ -442,7 +445,7 @@ app.post('/api/rsvp/:token', async (c) => {
     const qrData = await generateQRCodeData(
       guest.id as string,
       token,
-      body.name || guest.name as string,
+      guest.name as string,
       c.env.QR_SECRET
     );
     

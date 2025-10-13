@@ -109,11 +109,6 @@ export default function RSVPTokenPage() {
     e.preventDefault();
     
     // Validation
-    if (!formData.name.trim()) {
-      setError('請輸入姓名');
-      return;
-    }
-
     if (formData.dinner === null) {
       setError('請選擇是否出席晚宴');
       return;
@@ -137,8 +132,6 @@ export default function RSVPTokenPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          company: formData.company,
           dinner: formData.dinner,
           cocktail: formData.cocktail,
           workshop_type: formData.workshop ? formData.workshop_type : null,
@@ -153,7 +146,8 @@ export default function RSVPTokenPage() {
 
       // Store confirmation data for display
       sessionStorage.setItem('rsvp_confirmation', JSON.stringify({
-        name: formData.name,
+        name: guest?.name,
+        company: guest?.company,
         dinner: formData.dinner,
         cocktail: formData.cocktail,
         workshop_type: formData.workshop ? formData.workshop_type : null,
@@ -215,31 +209,23 @@ export default function RSVPTokenPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Input - Editable only for company invitations */}
-            <div className="space-y-2">
-              <Label htmlFor="name">姓名 *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                disabled={guest?.invite_type === 'named'}
-                placeholder="請輸入姓名"
-                required
-              />
-            </div>
-
-            {/* Company Input - Optional */}
-            {guest?.invite_type === 'company' && (
-              <div className="space-y-2">
-                <Label htmlFor="company">公司名稱</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  placeholder="請輸入公司名稱（選填）"
-                />
+            {/* Guest Information Display */}
+            <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-blue-900">受邀嘉賓</span>
               </div>
-            )}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base text-blue-900 font-medium">{guest?.name}</span>
+                  {guest?.company && (
+                    <>
+                      <span className="text-blue-400">·</span>
+                      <span className="text-sm text-blue-700">{guest.company}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Dinner Attendance */}
             <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
