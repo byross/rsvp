@@ -250,6 +250,7 @@ export default function AdminPage() {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    fontSize={10}
                   >
                     {rsvpData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -282,6 +283,7 @@ export default function AdminPage() {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    fontSize={10}
                   >
                     {eventData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -314,6 +316,7 @@ export default function AdminPage() {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    fontSize={10}
                   >
                     {workshopData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
