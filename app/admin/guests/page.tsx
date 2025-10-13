@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -34,6 +34,9 @@ interface Guest {
   workshop_type: string | null;
   workshop_time: string | null;
   checked_in: number;
+  invitation_sent: number;
+  invitation_sent_at: string | null;
+  invitation_message_id: string | null;
   created_at: string;
 }
 
@@ -198,6 +201,23 @@ export default function GuestsPage() {
     } catch (error) {
       console.error('Failed to delete guest:', error);
       alert('Failed to delete guest');
+    }
+  };
+
+  const handleSendInvitation = async (guestId: string) => {
+    try {
+      const response = await apiPost(`/api/admin/send-invitation/${guestId}`, {});
+      if (response.ok) {
+        // Refresh the guest list to update invitation status
+        fetchGuests();
+        alert('邀請郵件發送成功！');
+      } else {
+        const error = await response.json();
+        alert(`發送失敗：${error.error || '未知錯誤'}`);
+      }
+    } catch (error) {
+      console.error('Send invitation failed:', error);
+      alert('發送失敗，請重試');
     }
   };
 
@@ -369,6 +389,7 @@ export default function GuestsPage() {
                       <TableHead>郵箱</TableHead>
                       <TableHead>電話</TableHead>
                       <TableHead>狀態</TableHead>
+                      <TableHead>邀請狀態</TableHead>
                       <TableHead>晚宴</TableHead>
                       <TableHead>雞尾酒</TableHead>
                       <TableHead>工作坊</TableHead>
@@ -389,6 +410,17 @@ export default function GuestsPage() {
                         </TableCell>
                         <TableCell>{getStatusBadge(guest.rsvp_status)}</TableCell>
                         <TableCell>
+                          {guest.invitation_sent ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              已發送
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                              未發送
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           {guest.dinner ? '✓' : '-'}
                         </TableCell>
                         <TableCell>
@@ -406,6 +438,17 @@ export default function GuestsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            {!guest.invitation_sent && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSendInvitation(guest.id)}
+                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
+                                title="發送邀請郵件"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"

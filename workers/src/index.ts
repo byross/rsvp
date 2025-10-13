@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { generateQRCodeData } from './qr-generator';
 import { generateAndSaveQRCode } from './qr-storage';
-import { sendConfirmationEmail } from './emails/sender';
+import { sendConfirmationEmail, sendInvitationEmail } from './emails/sender';
 import { hashPassword, verifyPassword, generateToken, verifyToken, extractToken } from './auth-utils';
 import { requireAuth, requireSuperAdmin, requireAdmin } from './auth-middleware';
 
@@ -536,7 +536,7 @@ app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at, updated_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
       .all();
 
     return c.json(guests.results);
@@ -618,8 +618,9 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
             INSERT INTO guests (
               id, name, company, email, phone, token, invite_type,
               rsvp_status, dinner, cocktail, checked_in,
+              invitation_sent, invitation_sent_at, invitation_message_id,
               created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, 0, NULL, NULL, datetime('now'), datetime('now'))
           `)
           .bind(id, name, company || null, email, phone || null, token, invite_type)
           .run();
@@ -648,7 +649,7 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at FROM guests ORDER BY created_at DESC')
       .all();
 
     const results = guests.results as any[];
@@ -705,6 +706,186 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   }
 });
 
+// ===== Invitation Email Operations =====
+
+// Send invitation email to a single guest
+app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) => {
+  try {
+    const guestId = c.req.param('id');
+    
+    // Get guest details
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE id = ?')
+      .bind(guestId)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    // Generate invitation URL
+    const inviteUrl = `${c.env.FRONTEND_URL}/rsvp/${guest.token}`;
+
+    // Send invitation email
+    const emailResult = await sendInvitationEmail(
+      {
+        resendApiKey: c.env.RESEND_API_KEY,
+        fromEmail: c.env.RESEND_FROM_EMAIL,
+        fromName: c.env.RESEND_FROM_NAME,
+      },
+      {
+        to: guest.email as string,
+        guestName: guest.name as string,
+        inviteType: guest.invite_type as 'named' | 'company',
+        inviteUrl: inviteUrl,
+        eventName: c.env.EVENT_NAME || '活動邀請',
+        eventDate: c.env.EVENT_DATE || '2025年10月',
+        eventVenue: c.env.EVENT_VENUE || '活動場地',
+      }
+    );
+
+    if (emailResult.success) {
+      // Update invitation status
+      await c.env.DB
+        .prepare(`
+          UPDATE guests 
+          SET invitation_sent = 1, 
+              invitation_sent_at = datetime('now'), 
+              invitation_message_id = ?,
+              updated_at = datetime('now')
+          WHERE id = ?
+        `)
+        .bind(emailResult.messageId || null, guestId)
+        .run();
+
+      return c.json({ 
+        success: true, 
+        message: '邀請郵件發送成功',
+        messageId: emailResult.messageId
+      });
+    } else {
+      return c.json({ 
+        success: false, 
+        error: emailResult.error || '發送邀請郵件失敗' 
+      }, 500);
+    }
+  } catch (error) {
+    console.error('Send invitation error:', error);
+    return c.json({ error: 'Failed to send invitation', details: error.message }, 500);
+  }
+});
+
+// Send invitation emails to multiple guests
+app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => {
+  try {
+    const body = await c.req.json();
+    const { guestIds } = body;
+
+    if (!guestIds || !Array.isArray(guestIds) || guestIds.length === 0) {
+      return c.json({ error: 'Guest IDs array is required' }, 400);
+    }
+
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const guestId of guestIds) {
+      try {
+        // Get guest details
+        const guest = await c.env.DB
+          .prepare('SELECT * FROM guests WHERE id = ?')
+          .bind(guestId)
+          .first();
+
+        if (!guest) {
+          results.push({ guestId, success: false, error: 'Guest not found' });
+          failCount++;
+          continue;
+        }
+
+        // Skip if already sent
+        if (guest.invitation_sent === 1) {
+          results.push({ guestId, success: false, error: 'Invitation already sent' });
+          failCount++;
+          continue;
+        }
+
+        // Generate invitation URL
+        const inviteUrl = `${c.env.FRONTEND_URL}/rsvp/${guest.token}`;
+
+        // Send invitation email
+        const emailResult = await sendInvitationEmail(
+          {
+            resendApiKey: c.env.RESEND_API_KEY,
+            fromEmail: c.env.RESEND_FROM_EMAIL,
+            fromName: c.env.RESEND_FROM_NAME,
+          },
+          {
+            to: guest.email as string,
+            guestName: guest.name as string,
+            inviteType: guest.invite_type as 'named' | 'company',
+            inviteUrl: inviteUrl,
+            eventName: c.env.EVENT_NAME || '活動邀請',
+            eventDate: c.env.EVENT_DATE || '2025年10月',
+            eventVenue: c.env.EVENT_VENUE || '活動場地',
+          }
+        );
+
+        if (emailResult.success) {
+          // Update invitation status
+          await c.env.DB
+            .prepare(`
+              UPDATE guests 
+              SET invitation_sent = 1, 
+                  invitation_sent_at = datetime('now'), 
+                  invitation_message_id = ?,
+                  updated_at = datetime('now')
+              WHERE id = ?
+            `)
+            .bind(emailResult.messageId || null, guestId)
+            .run();
+
+          results.push({ 
+            guestId, 
+            success: true, 
+            messageId: emailResult.messageId,
+            guestName: guest.name 
+          });
+          successCount++;
+        } else {
+          results.push({ 
+            guestId, 
+            success: false, 
+            error: emailResult.error || '發送失敗' 
+          });
+          failCount++;
+        }
+      } catch (error) {
+        results.push({ 
+          guestId, 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+        failCount++;
+      }
+    }
+
+    return c.json({
+      success: true,
+      message: `批量發送完成：成功 ${successCount} 個，失敗 ${failCount} 個`,
+      results: results,
+      summary: {
+        total: guestIds.length,
+        success: successCount,
+        failed: failCount
+      }
+    });
+  } catch (error) {
+    console.error('Bulk send invitations error:', error);
+    return c.json({ error: 'Failed to send invitations', details: error.message }, 500);
+  }
+});
+
 // ===== Guest CRUD Operations =====
 
 // Create new guest
@@ -733,8 +914,9 @@ app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
     // Insert new guest
     const result = await c.env.DB.prepare(`
       INSERT INTO guests (id, name, email, company, phone, invite_type, token, rsvp_status, 
-                         dinner, cocktail, workshop_type, workshop_time, checked_in, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
+                         dinner, cocktail, workshop_type, workshop_time, checked_in, 
+                         invitation_sent, invitation_sent_at, invitation_message_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, 0, NULL, NULL, datetime('now'))
     `).bind(
       crypto.randomUUID(),
       name,
