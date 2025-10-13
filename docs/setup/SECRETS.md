@@ -225,3 +225,4 @@ npx wrangler secret put RESEND_API_KEY
 **負責人**: Ross Chang  
 **安全等級**: 🔴 高度敏感 - 請妥善保管所有密鑰
 
+

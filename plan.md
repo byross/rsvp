@@ -218,15 +218,18 @@ Verification logic:
 - [x] Add Worker API endpoints (stats, import, export).
 - **Commit**: `58eb6ab` - feat: Complete Phase 4 - Admin panel and CSV management (2025-10-09)
 
-### Phase 5 – Check-in Page
+### Phase 5 – Check-in Page (IN PROGRESS)
 - [ ] Implement QR scan page (html5-qrcode).
 - [ ] Fetch guest info via API.
-- [ ] Add “Confirm Check-in” button + duplicate scan warning.
+- [ ] Add "Confirm Check-in" button + duplicate scan warning.
+- [ ] Display workshop voucher reminder for staff.
 
 ### Phase 6 – QA / Polish
 - [ ] Test all email templates across clients.
 - [ ] Test duplicate scans.
 - [ ] Test offline mode (local cache for reception).
+- [ ] Performance optimization.
+- [ ] Security audit.
 
 ---
 
@@ -234,12 +237,36 @@ Verification logic:
 - Each token can only be used once for submission.
 - QR code cannot be reused after check-in.
 - Workshop time slots may have capacity limits (optional enhancement).
-- Admin auth should be password-protected or behind Cloudflare Access.
+- Admin auth implemented with simple password protection.
 - All personal data stored only until event completion, then anonymized.
+
+---
+
+## 11. Production Deployment ✅
+
+### Environment
+- **Frontend**: Next.js 15 (ready for Vercel deployment)
+- **Backend API**: https://rsvp-api.byross-tech.workers.dev
+- **Database**: Cloudflare D1 (APAC region)
+- **Storage**: Cloudflare R2 (QR codes)
+- **Email**: Resend API
+
+### Deployment Status
+- ✅ Cloudflare Workers deployed
+- ✅ D1 database initialized with migrations
+- ✅ R2 bucket configured for QR code storage
+- ✅ Email system tested and working
+- ✅ Admin authentication implemented
+- ⏳ Frontend deployment (pending)
+
+### Key URLs
+- API Health Check: https://rsvp-api.byross-tech.workers.dev/
+- QR Codes: https://rsvp-api.byross-tech.workers.dev/qr/[filename]
 
 ---
 
 **Owner:** byRoss Design & Tech  
 **Tech Lead:** Ross Chang  
 **Status:** Phase 1-4 Complete ✅ / Phase 5-6 Pending  
-**Last Updated:** 2025-10-09
+**Progress:** ~80% Complete  
+**Last Updated:** 2025-10-13

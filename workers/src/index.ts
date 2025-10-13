@@ -694,6 +694,166 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   }
 });
 
+// ===== Guest CRUD Operations =====
+
+// Create new guest
+app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
+  try {
+    const body = await c.req.json();
+    const { name, email, company, invite_type } = body;
+
+    // Validate required fields
+    if (!name || !email || !invite_type) {
+      return c.json({ error: 'Missing required fields: name, email, invite_type' }, 400);
+    }
+
+    // Check if email already exists
+    const existingGuest = await c.env.DB.prepare(
+      'SELECT id FROM guests WHERE email = ?'
+    ).bind(email).first();
+
+    if (existingGuest) {
+      return c.json({ error: 'Email already exists' }, 400);
+    }
+
+    // Generate unique token
+    const token = `token_${crypto.randomUUID().replace(/-/g, '').substring(0, 12)}`;
+
+    // Insert new guest
+    const result = await c.env.DB.prepare(`
+      INSERT INTO guests (id, name, email, company, invite_type, token, rsvp_status, 
+                         dinner, cocktail, workshop_type, workshop_time, checked_in, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
+    `).bind(
+      crypto.randomUUID(),
+      name,
+      email,
+      company || null,
+      invite_type,
+      token
+    ).run();
+
+    if (result.success) {
+      return c.json({ 
+        success: true, 
+        message: 'Guest created successfully',
+        token: token
+      });
+    } else {
+      return c.json({ error: 'Failed to create guest' }, 500);
+    }
+  } catch (error) {
+    console.error('Create guest error:', error);
+    return c.json({ error: 'Failed to create guest' }, 500);
+  }
+});
+
+// Update guest
+app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+  try {
+    const guestId = c.req.param('id');
+    const body = await c.req.json();
+    const { name, email, company, invite_type, rsvp_status, dinner, cocktail, workshop_type, workshop_time } = body;
+
+    // Validate required fields
+    if (!name || !email || !invite_type) {
+      return c.json({ error: 'Missing required fields: name, email, invite_type' }, 400);
+    }
+
+    // Check if email already exists for another guest
+    const existingGuest = await c.env.DB.prepare(
+      'SELECT id FROM guests WHERE email = ? AND id != ?'
+    ).bind(email, guestId).first();
+
+    if (existingGuest) {
+      return c.json({ error: 'Email already exists for another guest' }, 400);
+    }
+
+    // Update guest
+    const result = await c.env.DB.prepare(`
+      UPDATE guests 
+      SET name = ?, email = ?, company = ?, invite_type = ?, rsvp_status = ?,
+          dinner = ?, cocktail = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).bind(
+      name,
+      email,
+      company || null,
+      invite_type,
+      rsvp_status || 'pending',
+      dinner ? 1 : 0,
+      cocktail ? 1 : 0,
+      workshop_type || null,
+      workshop_time || null,
+      guestId
+    ).run();
+
+    if (result.success && result.changes > 0) {
+      return c.json({ 
+        success: true, 
+        message: 'Guest updated successfully'
+      });
+    } else if (result.changes === 0) {
+      return c.json({ error: 'Guest not found' }, 404);
+    } else {
+      return c.json({ error: 'Failed to update guest' }, 500);
+    }
+  } catch (error) {
+    console.error('Update guest error:', error);
+    return c.json({ error: 'Failed to update guest' }, 500);
+  }
+});
+
+// Delete guest
+app.delete('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+  try {
+    const guestId = c.req.param('id');
+
+    // Delete guest
+    const result = await c.env.DB.prepare(
+      'DELETE FROM guests WHERE id = ?'
+    ).bind(guestId).run();
+
+    if (result.success && result.changes > 0) {
+      return c.json({ 
+        success: true, 
+        message: 'Guest deleted successfully'
+      });
+    } else if (result.changes === 0) {
+      return c.json({ error: 'Guest not found' }, 404);
+    } else {
+      return c.json({ error: 'Failed to delete guest' }, 500);
+    }
+  } catch (error) {
+    console.error('Delete guest error:', error);
+    return c.json({ error: 'Failed to delete guest' }, 500);
+  }
+});
+
+// Get single guest by ID
+app.get('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+  try {
+    const guestId = c.req.param('id');
+
+    const guest = await c.env.DB.prepare(`
+      SELECT id, name, email, company, invite_type, token, rsvp_status,
+             dinner, cocktail, workshop_type, workshop_time, checked_in, 
+             created_at, updated_at
+      FROM guests 
+      WHERE id = ?
+    `).bind(guestId).first();
+
+    if (!guest) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    return c.json(guest);
+  } catch (error) {
+    console.error('Get guest error:', error);
+    return c.json({ error: 'Failed to get guest' }, 500);
+  }
+});
+
 // Test email sending (for development only)
 app.post('/api/test-email', async (c) => {
   const body = await c.req.json();

@@ -114,16 +114,17 @@ npm run dev
 npm run worker:dev
 ```
 
-## 已完成
+## ✅ 已完成功能
 
-✅ Next.js 15 項目初始化  
-✅ Tailwind CSS 配置  
-✅ shadcn UI 設置  
-✅ 基本頁面結構創建  
-✅ UI 組件 (Button, Card)  
-✅ Cloudflare Workers + Hono 設置  
-✅ D1 資料庫 Schema 和 Migration  
-✅ 基本 API Endpoints  
+### Phase 1-4 完成 (80% 完成度)
+
+✅ **Phase 1**: 基礎架構設置  
+✅ **Phase 2**: RSVP 表單系統  
+✅ **Phase 3**: 郵件與 QR Code 系統  
+✅ **Phase 4**: Admin 管理面板  
+✅ **生產環境**: 已部署到 Cloudflare
+
+詳細進度請查看 [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md)  
 
 ## 可用指令
 
@@ -144,19 +145,35 @@ npm run db:migrate       # 本地 migration
 npm run db:migrate:prod  # 生產環境 migration
 ```
 
-## 待實現
+## ⏳ 進行中
 
-- [ ] RSVP 表單前端功能
-- [ ] 前後端 API 整合
-- [ ] Resend 電郵整合
-- [ ] QR Code 生成與掃描
-- [ ] 管理面板完整功能
-- [ ] CSV 導入/匯出功能
-- [ ] Admin 身份驗證
-- [ ] PDF 生成（RSVP Pass）
+### Phase 5 - 簽到系統
+- [ ] QR Code 掃描器整合
+- [ ] 即時嘉賓資訊顯示
+- [ ] 簽到確認流程
+- [ ] 重複掃描警告
+
+詳細計劃請查看 [NEXT_STEPS.md](NEXT_STEPS.md)
+
+## 📚 文檔導航
+
+- [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) - 完整進度總覽 ⭐
+- [PROJECT_STATUS.md](PROJECT_STATUS.md) - 項目狀態
+- [NEXT_STEPS.md](NEXT_STEPS.md) - 下一步計劃
+- [plan.md](plan.md) - 完整技術規劃
+- [DOCS_INDEX.md](DOCS_INDEX.md) - 所有文檔索引
+
+## 🔗 生產環境
+
+- **API**: https://rsvp-api.byross-tech.workers.dev
+- **狀態**: 🟢 運行中
+- **進度**: 80% 完成
+
+---
 
 ## 開發者
 
 **byRoss Design & Tech**  
 技術主導: Ross Chang  
-更新日期: 2025-10-08
+更新日期: 2025-10-13  
+部署狀態: 🟢 生產環境運行中
