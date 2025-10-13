@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck, ExternalLink, Copy } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -37,6 +37,7 @@ interface Guest {
   invitation_sent?: number;
   invitation_sent_at?: string | null;
   invitation_message_id?: string | null;
+  token: string;
   created_at: string;
 }
 
@@ -227,6 +228,28 @@ export default function GuestsPage() {
     }
   };
 
+  const handleCopyRSVPLink = async (token: string) => {
+    const rsvpUrl = `${window.location.origin}/rsvp/${token}`;
+    try {
+      await navigator.clipboard.writeText(rsvpUrl);
+      alert('RSVP 連結已複製到剪貼板！');
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = rsvpUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('RSVP 連結已複製到剪貼板！');
+    }
+  };
+
+  const handleOpenRSVP = (token: string) => {
+    const rsvpUrl = `${window.location.origin}/rsvp/${token}`;
+    window.open(rsvpUrl, '_blank');
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -400,7 +423,7 @@ export default function GuestsPage() {
                       <TableHead>雞尾酒</TableHead>
                       <TableHead>工作坊</TableHead>
                       <TableHead>簽到</TableHead>
-                      <TableHead className="w-[100px]">操作</TableHead>
+                      <TableHead className="w-[140px]">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -444,6 +467,24 @@ export default function GuestsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopyRSVPLink(guest.token)}
+                              className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
+                              title="複製 RSVP 連結"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenRSVP(guest.token)}
+                              className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700"
+                              title="開啟 RSVP 頁面"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
                             {guest.invitation_sent ? (
                               <Button
                                 variant="ghost"
