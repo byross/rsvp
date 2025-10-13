@@ -80,7 +80,7 @@ export default function AdminPage() {
   const workshopData = [
     { name: '皮革工作坊', value: stats?.workshopLeather || 0, color: '#d97706' },
     { name: '香水工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
-    { name: '未報名', value: (stats?.total || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
+    { name: '未報名', value: (stats?.confirmed || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
   ];
 
   if (loading) {

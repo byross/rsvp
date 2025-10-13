@@ -501,20 +501,23 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
 
     const results = guests.results as any[];
 
+    // Only confirmed guests should be counted for event participation
+    const confirmedGuests = results.filter(g => g.rsvp_status === 'confirmed');
+    
     const stats = {
       total: results.length,
-      confirmed: results.filter(g => g.rsvp_status === 'confirmed').length,
+      confirmed: confirmedGuests.length,
       pending: results.filter(g => g.rsvp_status === 'pending').length,
       declined: results.filter(g => g.rsvp_status === 'declined').length,
-      dinner: results.filter(g => g.dinner === 1).length,
-      cocktail: results.filter(g => g.cocktail === 1).length,
-      workshopLeather: results.filter(g => g.workshop_type === 'leather').length,
-      workshopPerfume: results.filter(g => g.workshop_type === 'perfume').length,
+      dinner: confirmedGuests.filter(g => g.dinner === 1).length,
+      cocktail: confirmedGuests.filter(g => g.cocktail === 1).length,
+      workshopLeather: confirmedGuests.filter(g => g.workshop_type === 'leather').length,
+      workshopPerfume: confirmedGuests.filter(g => g.workshop_type === 'perfume').length,
       workshopByTime: {} as Record<string, number>,
     };
 
-    // Count by workshop type and time
-    results.forEach(guest => {
+    // Count by workshop type and time (only for confirmed guests)
+    confirmedGuests.forEach(guest => {
       if (guest.workshop_type && guest.workshop_time) {
         const key = `${guest.workshop_type}-${guest.workshop_time}`;
         stats.workshopByTime[key] = (stats.workshopByTime[key] || 0) + 1;
