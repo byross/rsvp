@@ -63,10 +63,10 @@ export default function ImportPage() {
     }
   };
 
-  const exampleCSV = `name,email,company,invite_type
-張三,zhang@example.com,ABC公司,named
-李四,li@example.com,XYZ公司,company
-王五,wang@example.com,,named`;
+  const exampleCSV = `name,email,company,phone,invite_type
+張三,zhang@example.com,ABC公司,0912345678,named
+李四,li@example.com,XYZ公司,0987654321,company
+王五,wang@example.com,,,named`;
 
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
@@ -107,6 +107,7 @@ export default function ImportPage() {
               <h4 className="font-semibold">選填欄位：</h4>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li><code>company</code> - 公司名稱</li>
+                <li><code>phone</code> - 電話號碼</li>
               </ul>
             </div>
             <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
@@ -153,7 +154,7 @@ export default function ImportPage() {
             <Textarea
               value={csvText}
               onChange={(e) => setCsvText(e.target.value)}
-              placeholder="name,email,company,invite_type&#10;張三,zhang@example.com,ABC公司,named"
+              placeholder="name,email,company,phone,invite_type&#10;張三,zhang@example.com,ABC公司,0912345678,named"
               className="font-mono text-sm min-h-[300px]"
             />
 

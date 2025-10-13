@@ -593,7 +593,7 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
       });
 
       try {
-        const { name, email, company, invite_type } = row;
+        const { name, email, company, phone, invite_type } = row;
 
         if (!name || !email || !invite_type) {
           errors.push(`第 ${i + 1} 行: 缺少必要欄位`);
@@ -613,12 +613,12 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
         await c.env.DB
           .prepare(`
             INSERT INTO guests (
-              id, name, company, email, token, invite_type,
+              id, name, company, email, phone, token, invite_type,
               rsvp_status, dinner, cocktail, checked_in,
               created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
           `)
-          .bind(id, name, company || null, email, token, invite_type)
+          .bind(id, name, company || null, email, phone || null, token, invite_type)
           .run();
 
         imported++;
