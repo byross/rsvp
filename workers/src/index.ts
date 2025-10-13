@@ -744,7 +744,7 @@ app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) 
     );
 
     if (emailResult.success) {
-      // Update invitation status
+      // Update invitation status (allow resending)
       await c.env.DB
         .prepare(`
           UPDATE guests 
@@ -757,10 +757,12 @@ app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) 
         .bind(emailResult.messageId || null, guestId)
         .run();
 
+      const isResend = guest.invitation_sent === 1;
       return c.json({ 
         success: true, 
-        message: '邀請郵件發送成功',
-        messageId: emailResult.messageId
+        message: isResend ? '邀請郵件重新發送成功' : '邀請郵件發送成功',
+        messageId: emailResult.messageId,
+        isResend: isResend
       });
     } else {
       return c.json({ 
@@ -802,12 +804,7 @@ app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => 
           continue;
         }
 
-        // Skip if already sent
-        if (guest.invitation_sent === 1) {
-          results.push({ guestId, success: false, error: 'Invitation already sent' });
-          failCount++;
-          continue;
-        }
+        // Allow resending (removed skip check)
 
         // Generate invitation URL
         const inviteUrl = `${c.env.FRONTEND_URL}/rsvp/${guest.token}`;

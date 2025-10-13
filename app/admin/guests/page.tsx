@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -204,13 +204,19 @@ export default function GuestsPage() {
     }
   };
 
-  const handleSendInvitation = async (guestId: string) => {
+  const handleSendInvitation = async (guestId: string, isResend: boolean = false) => {
+    const confirmMessage = isResend 
+      ? '確定要重新發送邀請郵件嗎？' 
+      : '確定要發送邀請郵件嗎？';
+    
+    if (!confirm(confirmMessage)) return;
+
     try {
       const response = await apiPost(`/api/admin/send-invitation/${guestId}`, {});
       if (response.ok) {
         // Refresh the guest list to update invitation status
         fetchGuests();
-        alert('邀請郵件發送成功！');
+        alert(isResend ? '邀請郵件重新發送成功！' : '邀請郵件發送成功！');
       } else {
         const error = await response.json();
         alert(`發送失敗：${error.error || '未知錯誤'}`);
@@ -438,11 +444,21 @@ export default function GuestsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {!guest.invitation_sent && (
+                            {guest.invitation_sent ? (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSendInvitation(guest.id)}
+                                onClick={() => handleSendInvitation(guest.id, true)}
+                                className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                title="重新發送邀請郵件"
+                              >
+                                <MailCheck className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSendInvitation(guest.id, false)}
                                 className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
                                 title="發送邀請郵件"
                               >
