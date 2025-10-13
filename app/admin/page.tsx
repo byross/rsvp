@@ -269,7 +269,7 @@ export default function AdminPage() {
                 <PieChartIcon className="w-5 h-5" />
                 活動參與分布
               </CardTitle>
-              <CardDescription>各活動出席統計</CardDescription>
+              <CardDescription>已確認嘉賓的活動出席統計</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -302,7 +302,7 @@ export default function AdminPage() {
                 <PieChartIcon className="w-5 h-5" />
                 工作坊報名分布
               </CardTitle>
-              <CardDescription>工作坊參與統計</CardDescription>
+              <CardDescription>已確認嘉賓的工作坊參與統計</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -338,7 +338,7 @@ export default function AdminPage() {
                 <TrendingUp className="w-5 h-5" />
                 活動出席統計
               </CardTitle>
-              <CardDescription>各項活動的參與人數</CardDescription>
+              <CardDescription>已確認嘉賓的各項活動參與人數</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
@@ -360,7 +360,7 @@ export default function AdminPage() {
           <Card>
             <CardHeader>
               <CardTitle>工作坊統計</CardTitle>
-              <CardDescription>各工作坊的報名人數</CardDescription>
+              <CardDescription>已確認嘉賓的工作坊報名人數</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
