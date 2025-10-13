@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck, ExternalLink, Copy } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -60,6 +60,7 @@ export default function GuestsPage() {
   const [exporting, setExporting] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingGuest, setEditingGuest] = useState<string | null>(null);
+  const [showDetailedView, setShowDetailedView] = useState(false);
   const [formData, setFormData] = useState<GuestFormData>({
     name: '',
     email: '',
@@ -301,6 +302,23 @@ export default function GuestsPage() {
             <p className="text-slate-600 mt-2">共 {guests.length} 位嘉賓</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDetailedView(!showDetailedView)}
+              className="flex items-center gap-2"
+            >
+              {showDetailedView ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  簡潔檢視
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  詳細檢視
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={fetchGuests} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               重新整理
@@ -414,9 +432,9 @@ export default function GuestsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>姓名</TableHead>
-                      <TableHead>公司</TableHead>
-                      <TableHead>郵箱</TableHead>
-                      <TableHead>電話</TableHead>
+                      {showDetailedView && <TableHead>公司</TableHead>}
+                      {showDetailedView && <TableHead>郵箱</TableHead>}
+                      {showDetailedView && <TableHead>電話</TableHead>}
                       <TableHead>狀態</TableHead>
                       <TableHead>邀請狀態</TableHead>
                       <TableHead>晚宴</TableHead>
@@ -430,13 +448,19 @@ export default function GuestsPage() {
                     {guests.map((guest) => (
                       <TableRow key={guest.id}>
                         <TableCell className="font-medium">{guest.name}</TableCell>
-                        <TableCell>{guest.company || '-'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {guest.email}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {guest.phone || '-'}
-                        </TableCell>
+                        {showDetailedView && (
+                          <TableCell>{guest.company || '-'}</TableCell>
+                        )}
+                        {showDetailedView && (
+                          <TableCell className="text-sm text-muted-foreground">
+                            {guest.email}
+                          </TableCell>
+                        )}
+                        {showDetailedView && (
+                          <TableCell className="text-sm">
+                            {guest.phone || '-'}
+                          </TableCell>
+                        )}
                         <TableCell>{getStatusBadge(guest.rsvp_status)}</TableCell>
                         <TableCell>
                           {guest.invitation_sent ? (
