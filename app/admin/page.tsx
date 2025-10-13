@@ -70,18 +70,18 @@ export default function AdminPage() {
     { name: '已確認', value: stats?.confirmed || 0, color: '#10b981' },
     { name: '待回覆', value: stats?.pending || 0, color: '#f97316' },
     { name: '已婉拒', value: stats?.declined || 0, color: '#64748b' },
-  ];
+  ].filter(item => item.value > 0); // 過濾掉 0 值的項目
 
   const eventData = [
     { name: '晚宴', value: stats?.dinner || 0, color: '#3b82f6' },
     { name: '雞尾酒會', value: stats?.cocktail || 0, color: '#8b5cf6' },
-  ];
+  ].filter(item => item.value > 0); // 過濾掉 0 值的項目
 
   const workshopData = [
     { name: '皮革工作坊', value: stats?.workshopLeather || 0, color: '#d97706' },
     { name: '香水工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
     { name: '未報名', value: (stats?.confirmed || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
-  ];
+  ].filter(item => item.value > 0); // 過濾掉 0 值的項目
 
   if (loading) {
     return (
@@ -240,24 +240,30 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={rsvpData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    fontSize={10}
-                  >
-                    {rsvpData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                {rsvpData.length > 0 ? (
+                  <PieChart>
+                    <Pie
+                      data={rsvpData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      fontSize={10}
+                    >
+                      {rsvpData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    暫無數據
+                  </div>
+                )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -273,24 +279,30 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={eventData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    fontSize={10}
-                  >
-                    {eventData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                {eventData.length > 0 ? (
+                  <PieChart>
+                    <Pie
+                      data={eventData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      fontSize={10}
+                    >
+                      {eventData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    暫無數據
+                  </div>
+                )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -306,24 +318,30 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={workshopData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    fontSize={10}
-                  >
-                    {workshopData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                {workshopData.length > 0 ? (
+                  <PieChart>
+                    <Pie
+                      data={workshopData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      fontSize={10}
+                    >
+                      {workshopData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    暫無數據
+                  </div>
+                )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
