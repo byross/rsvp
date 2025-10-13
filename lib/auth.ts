@@ -10,15 +10,15 @@ export function isAuthenticated(): boolean {
   if (!token) return false;
   
   try {
-    const decoded = atob(token);
-    const parts = decoded.split(':');
-    
-    if (parts.length === 3 && parts[0] === 'admin') {
-      const timestamp = parseInt(parts[1]);
-      const now = Date.now();
+    // Check if it's a JWT token (has 3 parts separated by dots)
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      // Decode JWT payload
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Math.floor(Date.now() / 1000);
       
-      // Token valid for 24 hours
-      if (now - timestamp < 24 * 60 * 60 * 1000) {
+      // Check if token is not expired
+      if (payload.exp && payload.exp > now) {
         return true;
       }
     }

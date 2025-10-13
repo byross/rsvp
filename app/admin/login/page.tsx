@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { setToken } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
 
       if (response.ok && data.success) {
         // Store token
-        sessionStorage.setItem('admin_token', data.token);
+        setToken(data.token);
         
         // Redirect to admin page
         router.push('/admin');

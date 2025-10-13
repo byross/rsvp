@@ -58,8 +58,16 @@ app.post('/api/admin/login', async (c) => {
     }
     
     if (password === c.env.ADMIN_PASSWORD) {
-      // Generate simple token (base64 encoded timestamp)
-      const token = btoa(`admin:${Date.now()}:${c.env.QR_SECRET}`);
+      // Generate JWT token
+      const { generateToken } = await import('./auth-utils');
+      const token = await generateToken(
+        'admin',
+        'admin',
+        'admin',
+        c.env.QR_SECRET,
+        24 * 60 * 60 * 1000 // 24 hours
+      );
+      
       return c.json({ 
         success: true, 
         token,
@@ -525,7 +533,7 @@ app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT * FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at, updated_at FROM guests ORDER BY created_at DESC')
       .all();
 
     return c.json(guests.results);
@@ -637,14 +645,14 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT * FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
       .all();
 
     const results = guests.results as any[];
 
     // CSV headers
     const headers = [
-      'name', 'company', 'email', 'invite_type', 'rsvp_status',
+      'name', 'company', 'email', 'phone', 'invite_type', 'rsvp_status',
       'dinner', 'cocktail', 'workshop_type', 'workshop_time',
       'checked_in', 'created_at'
     ];
@@ -700,7 +708,7 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
 app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
   try {
     const body = await c.req.json();
-    const { name, email, company, invite_type } = body;
+    const { name, email, company, phone, invite_type } = body;
 
     // Validate required fields
     if (!name || !email || !invite_type) {
@@ -721,14 +729,15 @@ app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
 
     // Insert new guest
     const result = await c.env.DB.prepare(`
-      INSERT INTO guests (id, name, email, company, invite_type, token, rsvp_status, 
+      INSERT INTO guests (id, name, email, company, phone, invite_type, token, rsvp_status, 
                          dinner, cocktail, workshop_type, workshop_time, checked_in, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
     `).bind(
       crypto.randomUUID(),
       name,
       email,
       company || null,
+      phone || null,
       invite_type,
       token
     ).run();
@@ -753,7 +762,7 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
   try {
     const guestId = c.req.param('id');
     const body = await c.req.json();
-    const { name, email, company, invite_type, rsvp_status, dinner, cocktail, workshop_type, workshop_time } = body;
+    const { name, email, company, phone, invite_type, rsvp_status, dinner, cocktail, workshop_type, workshop_time } = body;
 
     // Validate required fields
     if (!name || !email || !invite_type) {
@@ -772,13 +781,14 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
     // Update guest
     const result = await c.env.DB.prepare(`
       UPDATE guests 
-      SET name = ?, email = ?, company = ?, invite_type = ?, rsvp_status = ?,
+      SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?,
           dinner = ?, cocktail = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now')
       WHERE id = ?
     `).bind(
       name,
       email,
       company || null,
+      phone || null,
       invite_type,
       rsvp_status || 'pending',
       dinner ? 1 : 0,
@@ -836,7 +846,7 @@ app.get('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
     const guestId = c.req.param('id');
 
     const guest = await c.env.DB.prepare(`
-      SELECT id, name, email, company, invite_type, token, rsvp_status,
+      SELECT id, name, email, company, phone, invite_type, token, rsvp_status,
              dinner, cocktail, workshop_type, workshop_time, checked_in, 
              created_at, updated_at
       FROM guests 

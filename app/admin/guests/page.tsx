@@ -19,12 +19,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
   id: string;
   name: string;
   company: string | null;
   email: string;
+  phone: string | null;
   invite_type: 'named' | 'company';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: number;
@@ -39,6 +41,7 @@ interface GuestFormData {
   name: string;
   email: string;
   company: string;
+  phone: string;
   invite_type: 'named' | 'company';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: boolean;
@@ -57,6 +60,7 @@ export default function GuestsPage() {
     name: '',
     email: '',
     company: '',
+    phone: '',
     invite_type: 'named',
     rsvp_status: 'pending',
     dinner: false,
@@ -72,7 +76,7 @@ export default function GuestsPage() {
   const fetchGuests = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/guests');
+      const response = await apiGet('/api/admin/guests');
       if (response.ok) {
         const data = await response.json();
         setGuests(data);
@@ -87,7 +91,7 @@ export default function GuestsPage() {
   const exportCSV = async () => {
     setExporting(true);
     try {
-      const response = await fetch('/api/admin/export');
+      const response = await apiGet('/api/admin/export');
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -108,15 +112,12 @@ export default function GuestsPage() {
 
   const handleAddGuest = async () => {
     try {
-      const response = await fetch('/api/admin/guests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          company: formData.company || null,
-          invite_type: formData.invite_type
-        })
+      const response = await apiPost('/api/admin/guests', {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || null,
+        phone: formData.phone || null,
+        invite_type: formData.invite_type
       });
 
       if (response.ok) {
@@ -138,6 +139,7 @@ export default function GuestsPage() {
       name: guest.name,
       email: guest.email,
       company: guest.company || '',
+      phone: guest.phone || '',
       invite_type: guest.invite_type,
       rsvp_status: guest.rsvp_status,
       dinner: guest.dinner === 1,
@@ -152,20 +154,17 @@ export default function GuestsPage() {
     if (!editingGuest) return;
 
     try {
-      const response = await fetch(`/api/admin/guests/${editingGuest}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          company: formData.company || null,
-          invite_type: formData.invite_type,
-          rsvp_status: formData.rsvp_status,
-          dinner: formData.dinner,
-          cocktail: formData.cocktail,
-          workshop_type: formData.workshop_type || null,
-          workshop_time: formData.workshop_time || null
-        })
+      const response = await apiPut(`/api/admin/guests/${editingGuest}`, {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || null,
+        phone: formData.phone || null,
+        invite_type: formData.invite_type,
+        rsvp_status: formData.rsvp_status,
+        dinner: formData.dinner,
+        cocktail: formData.cocktail,
+        workshop_type: formData.workshop_type || null,
+        workshop_time: formData.workshop_time || null
       });
 
       if (response.ok) {
@@ -188,9 +187,7 @@ export default function GuestsPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/guests/${guestId}`, {
-        method: 'DELETE'
-      });
+      const response = await apiDelete(`/api/admin/guests/${guestId}`);
 
       if (response.ok) {
         fetchGuests();
@@ -209,6 +206,7 @@ export default function GuestsPage() {
       name: '',
       email: '',
       company: '',
+      phone: '',
       invite_type: 'named',
       rsvp_status: 'pending',
       dinner: false,
@@ -309,6 +307,16 @@ export default function GuestsPage() {
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="phone" className="text-right">電話</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="col-span-3"
+                      placeholder="電話號碼（可選）"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="invite_type" className="text-right">邀請類型 *</Label>
                     <Select value={formData.invite_type} onValueChange={(value: 'named' | 'company') => setFormData({...formData, invite_type: value})}>
                       <SelectTrigger className="col-span-3">
@@ -359,6 +367,7 @@ export default function GuestsPage() {
                       <TableHead>姓名</TableHead>
                       <TableHead>公司</TableHead>
                       <TableHead>郵箱</TableHead>
+                      <TableHead>電話</TableHead>
                       <TableHead>狀態</TableHead>
                       <TableHead>晚宴</TableHead>
                       <TableHead>雞尾酒</TableHead>
@@ -374,6 +383,9 @@ export default function GuestsPage() {
                         <TableCell>{guest.company || '-'}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {guest.email}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {guest.phone || '-'}
                         </TableCell>
                         <TableCell>{getStatusBadge(guest.rsvp_status)}</TableCell>
                         <TableCell>
@@ -461,17 +473,27 @@ export default function GuestsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-invite-type">邀請類型 *</Label>
-                  <Select value={formData.invite_type} onValueChange={(value: 'named' | 'company') => setFormData({...formData, invite_type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="named">具名嘉賓</SelectItem>
-                      <SelectItem value="company">公司邀請</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="edit-phone">電話</Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    placeholder="電話號碼"
+                  />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-invite-type">邀請類型 *</Label>
+                <Select value={formData.invite_type} onValueChange={(value: 'named' | 'company') => setFormData({...formData, invite_type: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="named">具名嘉賓</SelectItem>
+                    <SelectItem value="company">公司邀請</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
