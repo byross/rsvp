@@ -65,8 +65,8 @@ export default function GuestsPage() {
     rsvp_status: 'pending',
     dinner: false,
     cocktail: false,
-    workshop_type: '',
-    workshop_time: ''
+    workshop_type: 'none',
+    workshop_time: 'none'
   });
 
   useEffect(() => {
@@ -144,8 +144,8 @@ export default function GuestsPage() {
       rsvp_status: guest.rsvp_status,
       dinner: guest.dinner === 1,
       cocktail: guest.cocktail === 1,
-      workshop_type: guest.workshop_type || '',
-      workshop_time: guest.workshop_time || ''
+      workshop_type: guest.workshop_type || 'none',
+      workshop_time: guest.workshop_time || 'none'
     });
     setEditingGuest(guest.id);
   };
@@ -163,8 +163,8 @@ export default function GuestsPage() {
         rsvp_status: formData.rsvp_status,
         dinner: formData.dinner,
         cocktail: formData.cocktail,
-        workshop_type: formData.workshop_type || null,
-        workshop_time: formData.workshop_time || null
+          workshop_type: formData.workshop_type === 'none' ? null : formData.workshop_type,
+          workshop_time: formData.workshop_time === 'none' ? null : formData.workshop_time
       });
 
       if (response.ok) {
@@ -211,8 +211,8 @@ export default function GuestsPage() {
       rsvp_status: 'pending',
       dinner: false,
       cocktail: false,
-      workshop_type: '',
-      workshop_time: ''
+      workshop_type: 'none',
+      workshop_time: 'none'
     });
   };
 
@@ -534,31 +534,31 @@ export default function GuestsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-workshop-type">工作坊類型</Label>
-                  <Select value={formData.workshop_type} onValueChange={(value) => setFormData({...formData, workshop_type: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選擇工作坊" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">無</SelectItem>
-                      <SelectItem value="leather">皮革工作坊</SelectItem>
-                      <SelectItem value="perfume">香水工作坊</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select value={formData.workshop_type} onValueChange={(value) => setFormData({...formData, workshop_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="選擇工作坊" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">無</SelectItem>
+                        <SelectItem value="leather">皮革工作坊</SelectItem>
+                        <SelectItem value="perfume">香水工作坊</SelectItem>
+                      </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-workshop-time">工作坊時段</Label>
-                  <Select value={formData.workshop_time} onValueChange={(value) => setFormData({...formData, workshop_time: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選擇時段" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">無</SelectItem>
-                      <SelectItem value="1630">16:30</SelectItem>
-                      <SelectItem value="1700">17:00</SelectItem>
-                      <SelectItem value="1730">17:30</SelectItem>
-                      <SelectItem value="1800">18:00</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select value={formData.workshop_time} onValueChange={(value) => setFormData({...formData, workshop_time: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="選擇時段" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">無</SelectItem>
+                        <SelectItem value="1630">16:30</SelectItem>
+                        <SelectItem value="1700">17:00</SelectItem>
+                        <SelectItem value="1730">17:30</SelectItem>
+                        <SelectItem value="1800">18:00</SelectItem>
+                      </SelectContent>
+                    </Select>
                 </div>
               </div>
             </div>

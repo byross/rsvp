@@ -762,6 +762,8 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
   try {
     const guestId = c.req.param('id');
     const body = await c.req.json();
+    console.log('[Update] Guest ID:', guestId);
+    console.log('[Update] Request body:', body);
     const { name, email, company, phone, invite_type, rsvp_status, dinner, cocktail, workshop_type, workshop_time } = body;
 
     // Validate required fields
@@ -779,12 +781,10 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
     }
 
     // Update guest
-    const result = await c.env.DB.prepare(`
-      UPDATE guests 
-      SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?,
-          dinner = ?, cocktail = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now')
-      WHERE id = ?
-    `).bind(
+    const updateQuery = `UPDATE guests SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?, dinner = ?, cocktail = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now') WHERE id = ?`;
+    console.log('[Update] SQL query:', updateQuery);
+    
+    const bindParams = [
       name,
       email,
       company || null,
@@ -796,21 +796,36 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
       workshop_type || null,
       workshop_time || null,
       guestId
-    ).run();
+    ];
+    console.log('[Update] Bind parameters:', bindParams);
+    
+    const result = await c.env.DB.prepare(updateQuery).bind(...bindParams).run();
+    console.log('[Update] Result:', result);
 
-    if (result.success && result.changes > 0) {
-      return c.json({ 
-        success: true, 
-        message: 'Guest updated successfully'
-      });
-    } else if (result.changes === 0) {
-      return c.json({ error: 'Guest not found' }, 404);
+    if (result.success) {
+      // Check if the guest exists by verifying the guest ID exists
+      const existingGuest = await c.env.DB.prepare('SELECT id FROM guests WHERE id = ?').bind(guestId).first();
+      
+      if (existingGuest) {
+        return c.json({ 
+          success: true, 
+          message: 'Guest updated successfully',
+          changes: result.changes
+        });
+      } else {
+        return c.json({ error: 'Guest not found' }, 404);
+      }
     } else {
       return c.json({ error: 'Failed to update guest' }, 500);
     }
   } catch (error) {
-    console.error('Update guest error:', error);
-    return c.json({ error: 'Failed to update guest' }, 500);
+    console.error('[Update] Guest error:', error);
+    console.error('[Update] Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return c.json({ error: 'Failed to update guest', details: error.message }, 500);
   }
 });
 
