@@ -1,4 +1,4 @@
--- Add phone field to guests table
+-- Add phone field to guests table (if not exists)
 ALTER TABLE guests ADD COLUMN phone TEXT;
 
 -- Create index for phone field

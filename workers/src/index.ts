@@ -618,9 +618,8 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
             INSERT INTO guests (
               id, name, company, email, phone, token, invite_type,
               rsvp_status, dinner, cocktail, checked_in,
-              invitation_sent, invitation_sent_at, invitation_message_id,
               created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, 0, NULL, NULL, datetime('now'), datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
           `)
           .bind(id, name, company || null, email, phone || null, token, invite_type)
           .run();
@@ -649,7 +648,7 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
       .all();
 
     const results = guests.results as any[];
@@ -914,9 +913,8 @@ app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
     // Insert new guest
     const result = await c.env.DB.prepare(`
       INSERT INTO guests (id, name, email, company, phone, invite_type, token, rsvp_status, 
-                         dinner, cocktail, workshop_type, workshop_time, checked_in, 
-                         invitation_sent, invitation_sent_at, invitation_message_id, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, 0, NULL, NULL, datetime('now'))
+                         dinner, cocktail, workshop_type, workshop_time, checked_in, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
     `).bind(
       crypto.randomUUID(),
       name,

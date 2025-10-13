@@ -34,9 +34,9 @@ interface Guest {
   workshop_type: string | null;
   workshop_time: string | null;
   checked_in: number;
-  invitation_sent: number;
-  invitation_sent_at: string | null;
-  invitation_message_id: string | null;
+  invitation_sent?: number;
+  invitation_sent_at?: string | null;
+  invitation_message_id?: string | null;
   created_at: string;
 }
 

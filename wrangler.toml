@@ -8,6 +8,7 @@ account_id = "30a65543f36c726f6ccd663476bed81e"
 binding = "DB"
 database_name = "rsvp-db"
 database_id = "c9ced905-3c7d-4d44-8b72-aed06058b8b5"
+migrations_dir = "workers/migrations"
 
 # R2 Bucket for QR codes
 [[r2_buckets]]
