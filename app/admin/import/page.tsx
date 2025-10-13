@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
+import { apiPost } from '@/lib/api';
 
 interface ImportResult {
   success: boolean;
@@ -42,12 +43,7 @@ export default function ImportPage() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/admin/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csvData: csvText }),
-      });
-
+      const response = await apiPost('/api/admin/import', { csvData: csvText });
       const data = await response.json();
       setResult(data);
     } catch (error) {
