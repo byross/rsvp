@@ -14,11 +14,14 @@ import {
   List,
   Mail,
   TrendingUp,
-  LogOut
+  LogOut,
+  PieChart as PieChartIcon
 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import AdminAuthGuard from "@/components/AdminAuthGuard";
 import { logout } from "@/lib/auth";
 import { useRouter } from 'next/navigation';
+import { apiGet } from '@/lib/api';
 
 interface Stats {
   total: number;
@@ -45,7 +48,7 @@ export default function AdminPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await apiGet('/api/admin/stats');
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -61,6 +64,24 @@ export default function AdminPage() {
     logout();
     router.push('/admin/login');
   };
+
+  // Prepare data for pie charts
+  const rsvpData = [
+    { name: '已確認', value: stats?.confirmed || 0, color: '#10b981' },
+    { name: '待回覆', value: stats?.pending || 0, color: '#f97316' },
+    { name: '已婉拒', value: stats?.declined || 0, color: '#64748b' },
+  ];
+
+  const eventData = [
+    { name: '晚宴', value: stats?.dinner || 0, color: '#3b82f6' },
+    { name: '雞尾酒會', value: stats?.cocktail || 0, color: '#8b5cf6' },
+  ];
+
+  const workshopData = [
+    { name: '皮革工作坊', value: stats?.workshopLeather || 0, color: '#d97706' },
+    { name: '香水工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
+    { name: '未報名', value: (stats?.total || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
+  ];
 
   if (loading) {
     return (
@@ -202,6 +223,105 @@ export default function AdminPage() {
                 <div className="text-3xl font-bold text-slate-600">{stats?.declined || 0}</div>
                 <XCircle className="w-8 h-8 text-slate-400" />
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pie Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* RSVP Status Pie Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5" />
+                RSVP 狀態分布
+              </CardTitle>
+              <CardDescription>回覆狀態統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={rsvpData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {rsvpData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Event Attendance Pie Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5" />
+                活動參與分布
+              </CardTitle>
+              <CardDescription>各活動出席統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={eventData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {eventData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Workshop Pie Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5" />
+                工作坊報名分布
+              </CardTitle>
+              <CardDescription>工作坊參與統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={workshopData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {workshopData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
