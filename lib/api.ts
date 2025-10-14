@@ -1,6 +1,7 @@
 // API utilities for admin requests
 
 import { getToken } from './auth';
+import { buildApiUrl } from './config';
 
 /**
  * Make authenticated API request
@@ -12,13 +13,16 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
     throw new Error('No authentication token found');
   }
 
+  // Build full URL if it's a relative path
+  const fullUrl = url.startsWith('http') ? url : buildApiUrl(url);
+
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
     ...options.headers,
   };
 
-  return fetch(url, {
+  return fetch(fullUrl, {
     ...options,
     headers,
   });
