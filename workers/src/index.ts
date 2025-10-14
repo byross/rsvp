@@ -7,8 +7,8 @@ import { hashPassword, verifyPassword, generateToken, verifyToken, extractToken 
 import { requireAuth, requireSuperAdmin, requireAdmin } from './auth-middleware';
 
 type Bindings = {
-  DB: D1Database;
-  QR_BUCKET: R2Bucket;
+  DB: any; // D1Database
+  QR_BUCKET: any; // R2Bucket
   ALLOWED_ORIGIN: string;
   // Resend email service
   RESEND_API_KEY: string;
