@@ -13,6 +13,13 @@
 /.next/
 /out/
 /cache/
+.next/
+cache/
+
+# build cache
+.turbo/
+.swc/
+.webpack/
 
 # production
 /build
