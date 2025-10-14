@@ -165,30 +165,30 @@ export default function RSVPTokenPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center p-8 py-16">
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">載入中...</p>
           </CardContent>
         </Card>
-      </main>
+      </div>
     );
   }
 
   if (error && !guest) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center p-8 py-16">
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-6">
             <p className="text-center text-destructive">{error}</p>
           </CardContent>
         </Card>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="flex flex-col items-center justify-center p-8 py-16 bg-gradient-to-br from-slate-50 to-slate-100">
       <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader className="space-y-3">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
@@ -343,7 +343,7 @@ export default function RSVPTokenPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
 
