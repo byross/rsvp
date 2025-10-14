@@ -22,12 +22,6 @@ export default function Home() {
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6 pb-8">
             <div className="flex gap-4">
-              <Link href="/rsvp?invite=test-token-001">
-                <Button size="lg" className="gap-2">
-                  <Mail className="w-4 h-4" />
-                  測試 RSVP 表單
-                </Button>
-              </Link>
               <Link href="/admin">
                 <Button variant="outline" size="lg" className="gap-2">
                   <UserCheck className="w-4 h-4" />
@@ -89,44 +83,6 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Quick Links */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">快速導航</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link href="/rsvp?invite=test-token-001">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Mail className="w-4 h-4" />
-                RSVP 表單（測試）
-              </Button>
-            </Link>
-            <Link href="/admin">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <UserCheck className="w-4 h-4" />
-                管理面板
-              </Button>
-            </Link>
-            <Link href="/admin/import">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Calendar className="w-4 h-4" />
-                CSV 導入
-              </Button>
-            </Link>
-            <Link href="/checkin">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <QrCode className="w-4 h-4" />
-                簽到系統
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Status Footer */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>✅ Phase 1 完成 | 🚧 Phase 2 開發中</p>
-          <p className="mt-2">Next.js 15 + Cloudflare Workers + D1 + Tailwind CSS</p>
-        </div>
       </div>
     </main>
   );
