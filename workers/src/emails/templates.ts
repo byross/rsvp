@@ -147,7 +147,12 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
     </div>
     <div class="footer">
       <p>期待您的蒞臨！</p>
-      <p style="margin-top: 10px; font-size: 12px; color: #999;">
+      <p style="margin-top: 15px; font-size: 12px; color: #999;">
+        © 2025 <a href="https://byross.mo" style="color: #667eea; text-decoration: none;">byRoss Design and Tech</a>
+        <br>
+        byRoss RSVP V1.0
+      </p>
+      <p style="margin-top: 10px; font-size: 11px; color: #ccc;">
         此郵件由活動邀請系統自動發送
       </p>
     </div>
@@ -296,7 +301,12 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
     </div>
     <div class="footer">
       <p>期待您的蒞臨！</p>
-      <p style="margin-top: 10px; font-size: 12px; color: #999;">
+      <p style="margin-top: 15px; font-size: 12px; color: #999;">
+        © 2025 <a href="https://byross.mo" style="color: #667eea; text-decoration: none;">byRoss Design and Tech</a>
+        <br>
+        byRoss RSVP V1.0
+      </p>
+      <p style="margin-top: 10px; font-size: 11px; color: #ccc;">
         此郵件由活動邀請系統自動發送
       </p>
     </div>
@@ -493,7 +503,12 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
     </div>
     <div class="footer">
       <p>期待在活動中見到您！</p>
-      <p style="margin-top: 10px; font-size: 12px; color: #999;">
+      <p style="margin-top: 15px; font-size: 12px; color: #999;">
+        © 2025 <a href="https://byross.mo" style="color: #667eea; text-decoration: none;">byRoss Design and Tech</a>
+        <br>
+        byRoss RSVP V1.0
+      </p>
+      <p style="margin-top: 10px; font-size: 11px; color: #ccc;">
         此郵件由活動邀請系統自動發送
       </p>
     </div>
