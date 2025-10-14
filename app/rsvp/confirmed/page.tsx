@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 
 interface ConfirmationData {
@@ -15,7 +13,6 @@ interface ConfirmationData {
 }
 
 export default function ConfirmedPage() {
-  const router = useRouter();
   const [confirmationData, setConfirmationData] = useState<ConfirmationData | null>(null);
 
   useEffect(() => {
@@ -122,22 +119,6 @@ export default function ConfirmedPage() {
             </ul>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => router.push('/')}
-            >
-              返回首頁
-            </Button>
-            <Button
-              className="flex-1 bg-green-600 hover:bg-green-700"
-              onClick={() => window.print()}
-            >
-              列印確認頁
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </main>
