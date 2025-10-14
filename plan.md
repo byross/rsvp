@@ -68,13 +68,28 @@ The system must support two invitation types:
 | Component | Technology | Notes |
 |------------|-------------|-------|
 | Frontend | **Next.js 15 + Tailwind CSS** | RSVP form, confirmation screen, admin UI |
+| Frontend Deployment | **Cloudflare Pages** | Static export with `output: 'export'` |
 | Backend API | **Cloudflare Workers (Hono)** | Handles token verification, QR generation, email sending |
+| Backend URL | **https://rsvp-api.byross-tech.workers.dev** | Production API endpoint |
 | Database | **Cloudflare D1** | Guests, RSVP responses, scan logs |
 | Email Service | **Resend** | Invitation & confirmation emails (React Email templates) |
-| Storage | **R2 (optional)** | For storing QR/PDF files if needed |
+| Storage | **R2** | For storing QR/PDF files |
 | QR Code | **`qrcode` npm package** | PNG or base64 embedded in emails |
 | PDF | **`pdf-lib`** | Generates optional printable RSVP pass |
-| Auth (Admin) | Simple password or Cloudflare Access | Protect admin endpoints |
+| Auth (Admin) | **JWT Token** | Simple password-based admin authentication |
+| CORS | **Hono CORS Middleware** | Configured for `https://rsvp.momini.app` |
+
+### Deployment Architecture
+- **Frontend**: Cloudflare Pages (Static Export)
+  - Build Command: `npm run build:pages`
+  - Output Directory: `out`
+  - URL: `https://rsvp.momini.app`
+- **Backend**: Cloudflare Workers
+  - API Base URL: `https://rsvp-api.byross-tech.workers.dev`
+  - All endpoints prefixed with `/api/`
+- **Environment Variables**: 
+  - `NEXT_PUBLIC_API_URL` for frontend API calls
+  - `ALLOWED_ORIGIN` for CORS configuration
 
 ---
 
@@ -116,12 +131,20 @@ The system must support two invitation types:
 |---------|-----------|-------------|
 | `GET` | `/api/rsvp/:token` | Fetch guest data by token |
 | `POST` | `/api/rsvp/:token` | Submit RSVP form |
-| `POST` | `/api/email/invite` | Send bulk invitations (admin only) |
-| `POST` | `/api/email/confirm` | Send confirmation email with QR |
-| `POST` | `/api/scan` | Validate QR and mark as checked-in |
+| `POST` | `/api/admin/login` | Admin authentication |
+| `POST` | `/api/admin/verify` | Verify admin token |
+| `GET` | `/api/admin/stats` | Get admin dashboard statistics |
 | `GET` | `/api/admin/guests` | List all guests (admin) |
+| `POST` | `/api/admin/guests` | Create new guest (admin) |
+| `PUT` | `/api/admin/guests/:id` | Update guest (admin) |
+| `DELETE` | `/api/admin/guests/:id` | Delete guest (admin) |
+| `GET` | `/api/admin/guests/:id` | Get specific guest (admin) |
 | `POST` | `/api/admin/import` | Upload CSV of guest list |
 | `GET` | `/api/admin/export` | Export RSVP data |
+| `POST` | `/api/admin/send-invitation/:id` | Send invitation to specific guest |
+| `POST` | `/api/admin/send-invitations` | Send bulk invitations |
+| `POST` | `/api/scan` | Validate QR and mark as checked-in |
+| `POST` | `/api/test-email` | Test email functionality |
 
 ---
 
@@ -185,38 +208,46 @@ Verification logic:
 
 ---
 
-## 9. Development Tasks (TODO)
+## 9. Development Tasks
 
-### Phase 1 – Setup & DB
-- [ ] Define D1 schema & migrations.
-- [ ] Implement token generator.
-- [ ] Create data seeding script for sample guests.
+### Phase 1 – Setup & DB ✅ COMPLETED
+- [x] Define D1 schema & migrations.
+- [x] Implement token generator.
+- [x] Create data seeding script for sample guests.
 
-### Phase 2 – Frontend RSVP Form
-- [ ] Build RSVP form page (Next.js + Tailwind).
-- [ ] Add dynamic workshop time selector.
-- [ ] Handle “情況一 / 情況二” logic.
-- [ ] Connect to API endpoint.
+### Phase 2 – Frontend RSVP Form ✅ COMPLETED
+- [x] Build RSVP form page (Next.js + Tailwind).
+- [x] Add dynamic workshop time selector.
+- [x] Handle "情況一 / 情況二" logic.
+- [x] Connect to API endpoint.
 
-### Phase 3 – Email System
-- [ ] Setup Resend domain + API key.
-- [ ] Create invitation + confirmation React Email templates.
-- [ ] Implement Worker endpoint for sending confirmation with QR/PDF.
+### Phase 3 – Email System ✅ COMPLETED
+- [x] Setup Resend domain + API key.
+- [x] Create invitation + confirmation React Email templates.
+- [x] Implement Worker endpoint for sending confirmation with QR/PDF.
 
-### Phase 4 – Admin Panel
-- [ ] Build guest list table + CSV import/export.
-- [ ] Add resend invitation buttons.
-- [ ] Display RSVP statistics (e.g., per workshop slot).
+### Phase 4 – Admin Panel ✅ COMPLETED
+- [x] Build guest list table + CSV import/export.
+- [x] Add resend invitation buttons.
+- [x] Display RSVP statistics (e.g., per workshop slot).
 
-### Phase 5 – Check-in Page
+### Phase 5 – Check-in Page ⏳ IN PROGRESS
 - [ ] Implement QR scan page (html5-qrcode).
 - [ ] Fetch guest info via API.
-- [ ] Add “Confirm Check-in” button + duplicate scan warning.
+- [ ] Add "Confirm Check-in" button + duplicate scan warning.
 
-### Phase 6 – QA / Polish
+### Phase 6 – QA / Polish ⏳ PENDING
 - [ ] Test all email templates across clients.
 - [ ] Test duplicate scans.
 - [ ] Test offline mode (local cache for reception).
+
+### Phase 7 – Deployment & Production ✅ COMPLETED (2025-10-14)
+- [x] Cloudflare Pages frontend deployment.
+- [x] Cloudflare Workers backend deployment.
+- [x] CORS configuration for cross-origin requests.
+- [x] API endpoint routing and authentication.
+- [x] Build optimization and cache management.
+- [x] Environment variables and secrets configuration.
 
 ---
 
@@ -231,5 +262,5 @@ Verification logic:
 
 **Owner:** byRoss Design & Tech  
 **Tech Lead:** Ross Chang  
-**Status:** Planning v1.0  
-**Last Updated:** 2025-10-08
+**Status:** Production Ready v1.5  
+**Last Updated:** 2025-10-14

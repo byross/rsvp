@@ -1,9 +1,10 @@
-# 項目狀態 - 2025-10-13
+# 項目狀態 - 2025-10-14
 
-## 📊 整體進度：80% 完成
+## 📊 整體進度：85% 完成
 
 **Phase 1-4**: ✅ 完成並已部署  
-**Phase 5-6**: ⏳ 開發中
+**Phase 5**: ⏳ 開發中  
+**Phase 7**: ✅ 部署完成（2025-10-14）
 
 ---
 
@@ -132,6 +133,7 @@ rsvp/
 # Next.js 前端
 npm run dev              # 啟動開發伺服器 (http://localhost:3000)
 npm run build            # 構建生產版本
+npm run build:pages      # 構建 Cloudflare Pages 版本（清理 cache）
 npm run start            # 運行生產伺服器
 npm run lint             # 執行 ESLint
 
@@ -143,9 +145,30 @@ npm run worker:deploy    # 部署到 Cloudflare
 npm run db:create        # 創建 D1 資料庫（一次性）
 npm run db:migrate       # 執行本地 migration
 npm run db:migrate:prod  # 執行生產環境 migration
+
+# 部署相關
+git push                 # 自動觸發 Cloudflare Pages 部署
 ```
 
 ## ✅ 最新完成項目
+
+### 🚀 生產環境部署完成 (2025-10-14)
+- [x] **Cloudflare Pages 前端部署**: https://rsvp.momini.app
+- [x] **Cloudflare Workers 後端部署**: https://rsvp-api.byross-tech.workers.dev
+- [x] **前後端 API 連接修復**:
+  - ✅ 解決 Cloudflare Pages build cache 問題（25MB 限制）
+  - ✅ 修復 Build output directory 配置錯誤
+  - ✅ 配置 CORS 跨域請求
+  - ✅ 修復 API 端點 404/405 錯誤
+  - ✅ 解決 TypeScript 類型安全問題
+- [x] **Admin 功能測試通過**:
+  - ✅ Admin 登入功能正常
+  - ✅ CSV 導入功能正常
+  - ✅ API 路由全部修復
+- [x] **環境變數和配置**:
+  - ✅ `NEXT_PUBLIC_API_URL` 配置
+  - ✅ `ALLOWED_ORIGIN` CORS 配置
+  - ✅ JWT Token 認證系統
 
 ### 🎉 生產環境部署成功 (2025-10-09)
 - [x] Cloudflare Workers API 部署：https://rsvp-api.byross-tech.workers.dev
@@ -196,6 +219,20 @@ npm run db:migrate:prod  # 執行生產環境 migration
 - [ ] 重複掃描警告
 - [ ] 工作坊券發放提示
 - [ ] 簽到日誌記錄
+
+### 功能測試和驗證
+- [ ] **Admin 功能測試**：
+  - [ ] 嘉賓列表顯示和管理
+  - [ ] CSV 匯出功能
+  - [ ] 統計資料顯示
+- [ ] **RSVP 功能測試**：
+  - [ ] RSVP 表單提交
+  - [ ] 確認頁面顯示
+  - [ ] Token 驗證
+- [ ] **郵件功能測試**：
+  - [ ] 邀請郵件發送
+  - [ ] 確認郵件發送
+  - [ ] QR Code 生成和嵌入
 
 ### Phase 6 - QA / Polish
 - [ ] 跨瀏覽器測試
@@ -269,18 +306,21 @@ npm run db:migrate:prod  # 執行生產環境 migration
 
 ## 📈 項目指標
 
-- **完成度**: 80%
-- **已完成 Phase**: 1, 2, 3, 4
+- **完成度**: 85%
+- **已完成 Phase**: 1, 2, 3, 4, 7
 - **進行中 Phase**: 5
-- **代碼行數**: ~5,000+
-- **API 端點**: 15+
+- **代碼行數**: ~6,000+
+- **API 端點**: 17+
 - **資料庫表**: 2（guests, scan_logs）
 - **UI 頁面**: 8
+- **部署環境**: Cloudflare Pages + Workers
 
 ---
 
-**最後更新**: 2025-10-13  
+**最後更新**: 2025-10-14  
 **項目負責人**: Ross Chang  
-**技術棧**: Next.js 15, Cloudflare Workers, D1, Hono, Tailwind, shadcn UI  
-**部署狀態**: 🟢 生產環境運行中
+**技術棧**: Next.js 15, Cloudflare Pages, Cloudflare Workers, D1, Hono, Tailwind, shadcn UI  
+**部署狀態**: 🟢 生產環境運行中  
+**前端 URL**: https://rsvp.momini.app  
+**後端 API**: https://rsvp-api.byross-tech.workers.dev
 
