@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pages": "next build && rm -rf .next/cache",
+    "build:pages": "rm -rf .next && next build && npm run postbuild",
+    "postbuild": "rm -rf .next/cache && find .next -name '*.map' -delete",
     "start": "next start",
     "lint": "next lint",
     "worker:dev": "wrangler dev workers/src/index.ts",
