@@ -1,4 +1,5 @@
 // Simple admin authentication utilities
+import { apiRequest, API_ENDPOINTS } from './config';
 
 /**
  * Check if user is authenticated
@@ -58,9 +59,8 @@ export function logout(): void {
  */
 export async function verifyToken(token: string): Promise<boolean> {
   try {
-    const response = await fetch('/api/admin/verify', {
+    const response = await apiRequest(API_ENDPOINTS.ADMIN_VERIFY, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     });
     

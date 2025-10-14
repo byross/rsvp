@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { apiRequest, API_ENDPOINTS } from '@/lib/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,8 +60,7 @@ function RSVPContent() {
 
     const fetchGuest = async () => {
       try {
-        // TODO: Replace with actual API endpoint
-        const response = await fetch(`/api/rsvp/${token}`);
+        const response = await apiRequest(API_ENDPOINTS.RSVP_GET(token));
         
         if (!response.ok) {
           throw new Error('無法獲取邀請資料');
@@ -115,10 +115,8 @@ function RSVPContent() {
     setError('');
 
     try {
-      // TODO: Replace with actual API endpoint
-      const response = await fetch(`/api/rsvp/${token}`, {
+      const response = await apiRequest(API_ENDPOINTS.RSVP_SUBMIT(token), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           company: formData.company,
