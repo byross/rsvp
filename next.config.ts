@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // Note: rewrites don't work with static export
-  // API calls should use full URLs in production
+  // Note: Static export doesn't support rewrites
+  // API calls use full URLs from NEXT_PUBLIC_API_URL
 };
 
 export default nextConfig;

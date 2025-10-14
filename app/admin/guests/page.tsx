@@ -230,7 +230,7 @@ export default function GuestsPage() {
   };
 
   const handleCopyRSVPLink = async (token: string) => {
-    const rsvpUrl = `${window.location.origin}/rsvp/${token}`;
+    const rsvpUrl = `${window.location.origin}/rsvp?token=${token}`;
     try {
       await navigator.clipboard.writeText(rsvpUrl);
       alert('RSVP 連結已複製到剪貼板！');
@@ -247,7 +247,7 @@ export default function GuestsPage() {
   };
 
   const handleOpenRSVP = (token: string) => {
-    const rsvpUrl = `${window.location.origin}/rsvp/${token}`;
+    const rsvpUrl = `${window.location.origin}/rsvp?token=${token}`;
     window.open(rsvpUrl, '_blank');
   };
 

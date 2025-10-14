@@ -727,7 +727,7 @@ app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) 
     }
 
     // Generate invitation URL
-    const inviteUrl = `${c.env.FRONTEND_URL}/rsvp/${guest.token}`;
+    const inviteUrl = `${c.env.FRONTEND_URL}/rsvp?token=${guest.token}`;
 
     // Send invitation email
     const emailResult = await sendInvitationEmail(
@@ -811,7 +811,7 @@ app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => 
         // Allow resending (removed skip check)
 
         // Generate invitation URL
-        const inviteUrl = `${c.env.FRONTEND_URL}/rsvp/${guest.token}`;
+        const inviteUrl = `${c.env.FRONTEND_URL}/rsvp?token=${guest.token}`;
 
         // Send invitation email
         const emailResult = await sendInvitationEmail(

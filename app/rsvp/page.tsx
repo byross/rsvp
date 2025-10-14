@@ -33,7 +33,7 @@ interface FormData {
 function RSVPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('invite');
+  const token = searchParams.get('token');
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
