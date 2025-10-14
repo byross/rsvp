@@ -17,7 +17,7 @@ import {
   LogOut,
   PieChart as PieChartIcon
 } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import AdminAuthGuard from "@/components/AdminAuthGuard";
 import { logout } from "@/lib/auth";
 import { useRouter } from 'next/navigation';

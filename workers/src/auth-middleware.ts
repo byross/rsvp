@@ -6,7 +6,7 @@ import { verifyToken, extractToken } from './auth-utils';
 /**
  * Require authentication middleware
  */
-export async function requireAuth(c: Context, next: Next) {
+export async function requireAuth(c: Context, next: Next): Promise<Response | void> {
   const authHeader = c.req.header('Authorization');
   const token = extractToken(authHeader || null);
 
@@ -30,7 +30,7 @@ export async function requireAuth(c: Context, next: Next) {
  * Require specific role middleware
  */
 export function requireRole(allowedRoles: string[]) {
-  return async (c: Context, next: Next) => {
+  return async (c: Context, next: Next): Promise<Response | void> => {
     const user = c.get('user');
     
     if (!user) {

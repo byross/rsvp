@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, X, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {

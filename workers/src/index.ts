@@ -3,13 +3,14 @@ import { cors } from 'hono/cors';
 import { generateQRCodeData } from './qr-generator';
 import { generateAndSaveQRCode } from './qr-storage';
 import { sendConfirmationEmail, sendInvitationEmail } from './emails/sender';
-import { hashPassword, verifyPassword, generateToken, verifyToken, extractToken } from './auth-utils';
+import { hashPassword, verifyPassword, generateToken } from './auth-utils';
 import { requireAuth, requireSuperAdmin, requireAdmin } from './auth-middleware';
 
 type Bindings = {
   DB: any; // D1Database
   QR_BUCKET: any; // R2Bucket
   ALLOWED_ORIGIN: string;
+  FRONTEND_URL: string;
   // Resend email service
   RESEND_API_KEY: string;
   RESEND_FROM_EMAIL: string;
@@ -217,7 +218,7 @@ app.post('/api/auth/login', async (c) => {
 
 // Get current user info
 app.get('/api/auth/me', requireAuth, async (c) => {
-  const user = c.get('user');
+  const user = (c as any).get('user');
   
   try {
     const dbUser = await c.env.DB
@@ -355,7 +356,7 @@ app.put('/api/users/:id', requireAuth, requireSuperAdmin, async (c) => {
 // Delete user
 app.delete('/api/users/:id', requireAuth, requireSuperAdmin, async (c) => {
   const userId = c.req.param('id');
-  const currentUser = c.get('user');
+  const currentUser = (c as any).get('user');
 
   // Prevent self-deletion
   if (userId === currentUser.sub) {
@@ -594,7 +595,7 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
       const values = line.split(',').map((v: string) => v.trim());
       const row: Record<string, string> = {};
       
-      headers.forEach((header, index) => {
+      headers.forEach((header: string, index: number) => {
         row[header] = values[index] || '';
       });
 
@@ -775,7 +776,7 @@ app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) 
     }
   } catch (error) {
     console.error('Send invitation error:', error);
-    return c.json({ error: 'Failed to send invitation', details: error.message }, 500);
+    return c.json({ error: 'Failed to send invitation', details: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 
@@ -881,7 +882,7 @@ app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => 
     });
   } catch (error) {
     console.error('Bulk send invitations error:', error);
-    return c.json({ error: 'Failed to send invitations', details: error.message }, 500);
+    return c.json({ error: 'Failed to send invitations', details: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 
@@ -1004,11 +1005,11 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
   } catch (error) {
     console.error('[Update] Guest error:', error);
     console.error('[Update] Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown'
     });
-    return c.json({ error: 'Failed to update guest', details: error.message }, 500);
+    return c.json({ error: 'Failed to update guest', details: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 
@@ -1045,11 +1046,11 @@ app.delete('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
   } catch (error) {
     console.error('[Delete] Guest error:', error);
     console.error('[Delete] Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown'
     });
-    return c.json({ error: 'Failed to delete guest', details: error.message }, 500);
+    return c.json({ error: 'Failed to delete guest', details: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 

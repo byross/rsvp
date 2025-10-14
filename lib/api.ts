@@ -37,7 +37,7 @@ export async function apiGet(url: string): Promise<Response> {
 export async function apiPost(url: string, data?: any): Promise<Response> {
   return apiRequest(url, {
     method: 'POST',
-    body: data ? JSON.stringify(data) : undefined,
+    body: data ? JSON.stringify(data) : null,
   });
 }
 
@@ -47,7 +47,7 @@ export async function apiPost(url: string, data?: any): Promise<Response> {
 export async function apiPut(url: string, data?: any): Promise<Response> {
   return apiRequest(url, {
     method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined,
+    body: data ? JSON.stringify(data) : null,
   });
 }
 

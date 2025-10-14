@@ -4,7 +4,7 @@
  * Save QR code image to R2 and return public URL
  */
 export async function saveQRCodeToR2(
-  bucket: R2Bucket,
+  bucket: any, // R2Bucket
   guestId: string,
   imageBuffer: ArrayBuffer,
   workerUrl: string
@@ -27,7 +27,7 @@ export async function saveQRCodeToR2(
  * Generate QR code and save to R2
  */
 export async function generateAndSaveQRCode(
-  bucket: R2Bucket,
+  bucket: any, // R2Bucket
   guestId: string,
   qrData: string,
   workerUrl: string

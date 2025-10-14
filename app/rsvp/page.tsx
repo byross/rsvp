@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ interface FormData {
   workshop_time: string;
 }
 
-export default function RSVPPage() {
+function RSVPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('invite');
@@ -333,5 +333,21 @@ export default function RSVPPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function RSVPPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex min-h-screen flex-col items-center justify-center p-8">
+        <Card className="w-full max-w-2xl">
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">載入中...</p>
+          </CardContent>
+        </Card>
+      </main>
+    }>
+      <RSVPContent />
+    </Suspense>
   );
 }
