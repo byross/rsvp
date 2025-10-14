@@ -1,0 +1,51 @@
+# Cloudflare Pages ignore file
+# Files and directories that should not be uploaded to Cloudflare Pages
+
+# Node modules
+node_modules/
+
+# Next.js cache
+.next/cache/
+
+# Build cache
+.cache/
+
+# Local env files
+.env*.local
+.env
+.dev.vars
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Wrangler
+.wrangler/
+.mf/
+
+# Documentation (optional, if you don't want to deploy docs)
+*.md
+!README.md
+
+# Test files
+*.test.*
+*.spec.*
+__tests__/
+
