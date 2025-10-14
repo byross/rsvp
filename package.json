@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pages": "rm -rf .next out && next build",
+    "build:pages": "rm -rf .next out cache && next build && rm -rf .next/cache .next/server/cache .next/static/cache && find out/ -name '*cache*' -type d -exec rm -rf {} + 2>/dev/null || true",
     "start": "next start",
     "lint": "next lint",
     "worker:dev": "wrangler dev workers/src/index.ts",
