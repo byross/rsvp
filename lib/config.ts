@@ -21,17 +21,17 @@ export const getApiUrl = (): string => {
 // API 端點
 export const API_ENDPOINTS = {
   // Admin endpoints
-  ADMIN_LOGIN: '/admin/login',
-  ADMIN_VERIFY: '/admin/verify', 
-  ADMIN_GUESTS: '/admin/guests',
-  ADMIN_IMPORT: '/admin/import',
+  ADMIN_LOGIN: '/api/admin/login',
+  ADMIN_VERIFY: '/api/admin/verify', 
+  ADMIN_GUESTS: '/api/admin/guests',
+  ADMIN_IMPORT: '/api/admin/import',
   
   // RSVP endpoints  
-  RSVP_GET: (token: string) => `/rsvp/${token}`,
-  RSVP_SUBMIT: (token: string) => `/rsvp/${token}`,
+  RSVP_GET: (token: string) => `/api/rsvp/${token}`,
+  RSVP_SUBMIT: (token: string) => `/api/rsvp/${token}`,
   
   // Checkin endpoints
-  SCAN: '/scan',
+  SCAN: '/api/scan',
 } as const;
 
 /**
