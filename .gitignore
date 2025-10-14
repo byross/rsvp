@@ -29,6 +29,7 @@ yarn-error.log*
 .env*.local
 .env
 .dev.vars
+# Note: .env.production is needed for Cloudflare Pages build
 
 # vercel
 .vercel
