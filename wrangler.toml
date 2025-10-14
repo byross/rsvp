@@ -31,11 +31,11 @@ EVENT_DATE = "2025-10-15"
 EVENT_VENUE = "活動場地"
 # R2 Worker URL (QR codes will be served through Worker)
 R2_PUBLIC_URL = "https://rsvp-api.byross-tech.workers.dev"
-
 # CORS settings for Next.js frontend
-[env.production]
-vars = { ALLOWED_ORIGIN = "https://rsvp.momini.app", FRONTEND_URL = "https://rsvp.momini.app" }
+ALLOWED_ORIGIN = "https://rsvp.momini.app"
+FRONTEND_URL = "https://rsvp.momini.app"
 
+# Environment-specific overrides
 [env.development]
 vars = { ALLOWED_ORIGIN = "http://localhost:3000" }
 

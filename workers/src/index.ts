@@ -535,6 +535,40 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
   }
 });
 
+// Search guests by name, phone, email, or company (admin only)
+app.get('/api/admin/guests/search', requireAuth, requireAdmin, async (c) => {
+  try {
+    const query = c.req.query('q');
+    
+    if (!query) {
+      return c.json({ error: 'Search query required' }, 400);
+    }
+
+    const searchPattern = `%${query}%`;
+    const guests = await c.env.DB
+      .prepare(`
+        SELECT id, name, email, company, phone, invite_type, token, rsvp_status, 
+               dinner, cocktail, workshop_type, workshop_time, checked_in, 
+               invitation_sent, invitation_sent_at, invitation_message_id, 
+               created_at, updated_at 
+        FROM guests 
+        WHERE name LIKE ? 
+           OR phone LIKE ? 
+           OR email LIKE ? 
+           OR company LIKE ?
+        ORDER BY created_at DESC
+        LIMIT 20
+      `)
+      .bind(searchPattern, searchPattern, searchPattern, searchPattern)
+      .all();
+
+    return c.json(guests.results);
+  } catch (error) {
+    console.error('Search error:', error);
+    return c.json({ error: 'Search failed' }, 500);
+  }
+});
+
 // List all guests (admin only)
 app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
   

@@ -74,6 +74,14 @@ export default function GuestsPage() {
     workshop_time: 'none'
   });
 
+  // Check-in related states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [qrInput, setQrInput] = useState('');
+  const [searchResults, setSearchResults] = useState<Guest[]>([]);
+  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkinStatus, setCheckinStatus] = useState<{type: 'success' | 'error' | 'warning' | null, message: string}>({type: null, message: ''});
+
   useEffect(() => {
     fetchGuests();
   }, []);
@@ -266,6 +274,98 @@ export default function GuestsPage() {
     });
   };
 
+  // Search guests for check-in
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const response = await apiGet(`/api/admin/guests/search?q=${encodeURIComponent(searchQuery)}`);
+      if (response.ok) {
+        const results = await response.json();
+        setSearchResults(results);
+        if (results.length === 1) {
+          setSelectedGuest(results[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      setCheckinStatus({type: 'error', message: '搜尋失敗'});
+    }
+  };
+
+  // Parse QR code JSON
+  const handleQRInput = () => {
+    if (!qrInput.trim()) return;
+
+    try {
+      // Try to parse as JSON first
+      const qrData = JSON.parse(qrInput);
+      if (qrData.token) {
+        // Find guest by token
+        const guest = guests.find(g => g.token === qrData.token);
+        if (guest) {
+          setSelectedGuest(guest);
+          setCheckinStatus({type: null, message: ''});
+        } else {
+          setCheckinStatus({type: 'error', message: '找不到對應的客人'});
+        }
+      } else {
+        setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤：缺少 token'});
+      }
+    } catch (error) {
+      // If not JSON, assume it's just a token
+      const guest = guests.find(g => g.token === qrInput.trim());
+      if (guest) {
+        setSelectedGuest(guest);
+        setCheckinStatus({type: null, message: ''});
+      } else {
+        setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤或找不到客人'});
+      }
+    }
+  };
+
+  // Check-in guest
+  const handleCheckin = async () => {
+    if (!selectedGuest) return;
+
+    setCheckingIn(true);
+    try {
+      const response = await apiPost('/api/scan', { token: selectedGuest.token });
+      const data = await response.json();
+
+      if (response.ok) {
+        setCheckinStatus({type: 'success', message: `${selectedGuest.name} 簽到成功！`});
+        // Refresh guest list
+        fetchGuests();
+        // Clear form after 2 seconds
+        setTimeout(() => {
+          resetCheckinForm();
+        }, 2000);
+      } else if (data.status === 'duplicate') {
+        setCheckinStatus({type: 'warning', message: `${selectedGuest.name} 已經簽到過了`});
+      } else {
+        setCheckinStatus({type: 'error', message: data.error || '簽到失敗'});
+      }
+    } catch (error) {
+      console.error('Check-in failed:', error);
+      setCheckinStatus({type: 'error', message: '簽到失敗，請重試'});
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
+  // Reset check-in form
+  const resetCheckinForm = () => {
+    setSearchQuery('');
+    setQrInput('');
+    setSearchResults([]);
+    setSelectedGuest(null);
+    setCheckinStatus({type: null, message: ''});
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -404,6 +504,147 @@ export default function GuestsPage() {
             </Dialog>
           </div>
         </div>
+
+        {/* Check-in Section */}
+        <Card className="border-2 border-blue-200 bg-blue-50/50">
+          <CardHeader>
+            <CardTitle className="text-2xl text-blue-900">現場簽到</CardTitle>
+            <CardDescription>
+              使用搜尋或 QR Code 快速簽到
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Search Method */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">方法一：搜尋客人</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="輸入姓名、電話、Email 或公司..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSearch} variant="outline">
+                    搜尋
+                  </Button>
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="mt-2 space-y-1 max-h-40 overflow-y-auto border rounded-md p-2">
+                    {searchResults.map((guest) => (
+                      <div
+                        key={guest.id}
+                        onClick={() => setSelectedGuest(guest)}
+                        className={`p-2 rounded cursor-pointer hover:bg-blue-100 ${
+                          selectedGuest?.id === guest.id ? 'bg-blue-200' : 'bg-white'
+                        }`}
+                      >
+                        <div className="font-medium">{guest.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {guest.phone} • {guest.email}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* QR Code Method */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">方法二：QR Code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="貼上 QR Code 內容..."
+                    value={qrInput}
+                    onChange={(e) => setQrInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleQRInput()}
+                    className="flex-1 font-mono text-sm"
+                  />
+                  <Button onClick={handleQRInput} variant="outline">
+                    解析
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  範例：{`{"id":"xxx","token":"xxx","name":"xxx",...}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Selected Guest Card */}
+            {selectedGuest && (
+              <div className="border-2 border-blue-300 rounded-lg p-4 bg-white">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-900">{selectedGuest.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedGuest.company || '無公司資料'} • {selectedGuest.phone || '無電話'}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={resetCheckinForm}>
+                    ✕
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">RSVP 狀態</p>
+                    <div className="font-medium">{getStatusBadge(selectedGuest.rsvp_status)}</div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">晚宴</p>
+                    <p className="font-medium">{selectedGuest.dinner ? '✓ 參加' : '✗ 不參加'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">雞尾酒會</p>
+                    <p className="font-medium">{selectedGuest.cocktail ? '✓ 參加' : '✗ 不參加'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">工作坊</p>
+                    <p className="font-medium">
+                      {selectedGuest.workshop_type ? (
+                        <span className="text-orange-600 font-semibold">
+                          ⚠️ {formatWorkshop(selectedGuest.workshop_type, selectedGuest.workshop_time)}
+                        </span>
+                      ) : (
+                        '✓ 無需發放'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleCheckin}
+                    disabled={checkingIn || selectedGuest.checked_in === 1}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    size="lg"
+                  >
+                    {checkingIn ? '處理中...' : selectedGuest.checked_in ? '已簽到 ✓' : '確認簽到'}
+                  </Button>
+                  <Button onClick={resetCheckinForm} variant="outline" size="lg">
+                    清除
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Status Message */}
+            {checkinStatus.type && (
+              <div
+                className={`mt-4 p-4 rounded-lg ${
+                  checkinStatus.type === 'success'
+                    ? 'bg-green-100 text-green-800 border border-green-300'
+                    : checkinStatus.type === 'warning'
+                    ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                    : 'bg-red-100 text-red-800 border border-red-300'
+                }`}
+              >
+                {checkinStatus.message}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Table */}
         <Card>
