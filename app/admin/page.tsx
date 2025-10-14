@@ -35,6 +35,8 @@ interface Stats {
   workshopByTime: {
     [key: string]: number;
   };
+  checkedIn: number;
+  checkInRate: number;
 }
 
 export default function AdminPage() {
@@ -81,6 +83,11 @@ export default function AdminPage() {
     { name: '皮革工作坊', value: stats?.workshopLeather || 0, color: '#d97706' },
     { name: '香水工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
     { name: '未報名', value: (stats?.confirmed || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
+  ].filter(item => item.value > 0); // 過濾掉 0 值的項目
+
+  const checkInData = [
+    { name: '已簽到', value: stats?.checkedIn || 0, color: '#3b82f6' },
+    { name: '未簽到', value: (stats?.confirmed || 0) - (stats?.checkedIn || 0), color: '#e5e7eb' },
   ].filter(item => item.value > 0); // 過濾掉 0 值的項目
 
   if (loading) {
@@ -164,7 +171,7 @@ export default function AdminPage() {
         </div>
 
         {/* Statistics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -201,6 +208,25 @@ export default function AdminPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
+                已簽到
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-blue-600">{stats?.checkedIn || 0}</div>
+                <CheckCircle className="w-8 h-8 text-blue-400" />
+              </div>
+              {stats?.confirmed && stats.confirmed > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {((stats.checkedIn / stats.confirmed) * 100).toFixed(1)}% 簽到率
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 待回覆
               </CardTitle>
             </CardHeader>
@@ -228,7 +254,7 @@ export default function AdminPage() {
         </div>
 
         {/* Pie Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* RSVP Status Pie Chart */}
           <Card>
             <CardHeader>
@@ -345,10 +371,49 @@ export default function AdminPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {/* Check-in Status Pie Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5" />
+                簽到狀態分布
+              </CardTitle>
+              <CardDescription>已確認嘉賓的簽到統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                {checkInData.length > 0 ? (
+                  <PieChart>
+                    <Pie
+                      data={checkInData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(props: any) => `${props.name} ${(props.percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      fontSize={10}
+                    >
+                      {checkInData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    暫無數據
+                  </div>
+                )}
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Detailed Statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Event Attendance */}
           <Card>
             <CardHeader>
@@ -434,6 +499,41 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Check-in Statistics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
+                簽到統計
+              </CardTitle>
+              <CardDescription>已確認嘉賓的簽到情況</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                <span className="font-medium">已簽到</span>
+                <Badge className="bg-blue-600 text-lg">
+                  {stats?.checkedIn || 0} 人
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium">未簽到</span>
+                <Badge variant="secondary" className="text-lg">
+                  {(stats?.confirmed || 0) - (stats?.checkedIn || 0)} 人
+                </Badge>
+              </div>
+              {stats?.confirmed && stats.confirmed > 0 && (
+                <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {((stats.checkedIn / stats.confirmed) * 100).toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">簽到率</div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

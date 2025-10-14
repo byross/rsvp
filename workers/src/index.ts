@@ -508,6 +508,8 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
     // Only confirmed guests should be counted for event participation
     const confirmedGuests = results.filter(g => g.rsvp_status === 'confirmed');
     
+    const checkedInGuests = confirmedGuests.filter(g => g.checked_in === 1);
+    
     const stats = {
       total: results.length,
       confirmed: confirmedGuests.length,
@@ -517,6 +519,8 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
       cocktail: confirmedGuests.filter(g => g.cocktail === 1).length,
       workshopLeather: confirmedGuests.filter(g => g.workshop_type === 'leather').length,
       workshopPerfume: confirmedGuests.filter(g => g.workshop_type === 'perfume').length,
+      checkedIn: checkedInGuests.length,
+      checkInRate: confirmedGuests.length > 0 ? (checkedInGuests.length / confirmedGuests.length) * 100 : 0,
       workshopByTime: {} as Record<string, number>,
     };
 
