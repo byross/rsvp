@@ -59,6 +59,11 @@ function RSVPContent() {
     }
 
     const fetchGuest = async () => {
+      if (!token) {
+        setError('無效的邀請連結');
+        return;
+      }
+
       try {
         const response = await apiRequest(API_ENDPOINTS.RSVP_GET(token));
         
@@ -90,7 +95,13 @@ function RSVPContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
+    // Token validation
+    if (!token) {
+      setError('無效的邀請連結');
+      return;
+    }
+    
+    // Form validation
     if (!formData.name.trim()) {
       setError('請輸入姓名');
       return;
