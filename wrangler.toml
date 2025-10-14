@@ -34,7 +34,7 @@ R2_PUBLIC_URL = "https://rsvp-api.byross-tech.workers.dev"
 
 # CORS settings for Next.js frontend
 [env.production]
-vars = { ALLOWED_ORIGIN = "https://your-domain.com" }
+vars = { ALLOWED_ORIGIN = "https://rsvp.momini.app", FRONTEND_URL = "https://rsvp.momini.app" }
 
 [env.development]
 vars = { ALLOWED_ORIGIN = "http://localhost:3000" }
