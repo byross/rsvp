@@ -8,7 +8,7 @@ import { verifyToken, extractToken } from './auth-utils';
  */
 export async function requireAuth(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
-  const token = extractToken(authHeader);
+  const token = extractToken(authHeader || null);
 
   if (!token) {
     return c.json({ error: 'Unauthorized', message: 'No token provided' }, 401);
