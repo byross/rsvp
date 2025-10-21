@@ -5,16 +5,16 @@
 
 // 獲取 API 基礎 URL
 export const getApiUrl = (): string => {
+  // 在構建時嵌入 API URL（通過 next.config.ts 的 env 配置）
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (!apiUrl) {
-    console.error('⚠️ NEXT_PUBLIC_API_URL 未設定');
-    // 開發環境默認值
-    return typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? 'http://localhost:8787'
-      : 'https://rsvp-api.byross-tech.workers.dev';
+    // 這應該永遠不會發生，因為 next.config.ts 有 fallback
+    console.error('❌ CRITICAL: NEXT_PUBLIC_API_URL is not set!');
+    throw new Error('API URL is not configured');
   }
   
+  console.log(`🌐 Using API URL: ${apiUrl}`);
   return apiUrl;
 };
 

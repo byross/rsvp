@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import QRScanner from "@/components/QRScanner";
+import { Input } from "@/components/ui/input";
+import { apiRequest } from "@/lib/config";
 
 interface Guest {
   id: string;
@@ -25,27 +26,22 @@ export default function CheckinPage() {
   const [guest, setGuest] = useState<Guest | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [token, setToken] = useState<string>('');
 
-  const handleScanSuccess = async (qrData: string) => {
+  const handleCheckIn = async () => {
+    if (!token.trim()) {
+      setError('請輸入 QR Code token');
+      return;
+    }
+
     setError(null);
     setSuccess(null);
     
     try {
-      // 解析 QR Code 數據
-      const qrPayload = JSON.parse(qrData);
-      const token = qrPayload.token;
-      
-      if (!token) {
-        throw new Error('無效的 QR Code');
-      }
-
       // 調用簽到 API
-      const response = await fetch('/api/scan', {
+      const response = await apiRequest('/api/scan', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token: token.trim() }),
       });
 
       const result = await response.json();
@@ -69,12 +65,8 @@ export default function CheckinPage() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '掃描失敗');
+      setError(err instanceof Error ? err.message : '簽到失敗');
     }
-  };
-
-  const handleScanError = (error: string) => {
-    setError(error);
   };
 
   const getWorkshopName = (type: string) => {
@@ -93,24 +85,53 @@ export default function CheckinPage() {
     setGuest(null);
     setError(null);
     setSuccess(null);
+    setToken('');
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <Card className="w-full max-w-4xl">
-        <CardHeader>
+        <CardHeader className="space-y-4">
+          {/* Logo */}
+          <div className="w-full mb-4">
+            <img 
+              src="/images/logo.jpeg" 
+              alt="活動 Logo" 
+              className="w-full h-auto object-cover rounded-lg"
+            />
+          </div>
+          
           <CardTitle className="text-3xl text-center">簽到系統</CardTitle>
           <CardDescription className="text-center">
-            掃描嘉賓的 QR Code 進行簽到
+            輸入嘉賓的 QR Code token 進行簽到
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* QR Code 掃描器 */}
-          <QRScanner 
-            onScanSuccess={handleScanSuccess}
-            onScanError={handleScanError}
-            className="mb-6"
-          />
+          {/* Token 輸入 */}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-2">
+                QR Code Token
+              </label>
+              <Input
+                id="token"
+                type="text"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="請輸入 QR Code token"
+                className="w-full"
+              />
+            </div>
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleCheckIn}
+                disabled={!token.trim()}
+                className="px-8"
+              >
+                簽到
+              </Button>
+            </div>
+          </div>
 
           {/* 嘉賓資訊顯示 */}
           {guest && (

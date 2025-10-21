@@ -49,15 +49,8 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px 30px;
+      padding: 0;
       text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
     }
     .content {
       padding: 40px 30px;
@@ -87,8 +80,8 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
     }
     .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: #bfdbfe;
+      color: #000000;
       padding: 16px 40px;
       text-decoration: none;
       border-radius: 8px;
@@ -100,6 +93,7 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
     }
     .cta-button:hover {
       transform: translateY(-2px);
+      background: #93c5fd;
     }
     .footer {
       background: #f8f9fa;
@@ -113,7 +107,7 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
 <body>
   <div class="container">
     <div class="header">
-      <h1>✨ ${data.eventName} ✨</h1>
+      <img src="https://rsvp.momini.app/images/logo.jpeg" alt="${data.eventName}" style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 12px 12px 0 0;" />
     </div>
     <div class="content">
       <p class="greeting">親愛的 <strong>${data.guestName}</strong>，</p>
@@ -122,22 +116,24 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
       </p>
       
       <div class="event-details">
-        <h3>📅 活動詳情</h3>
+        <h3>活動詳情</h3>
         <p><strong>活動名稱：</strong>${data.eventName}</p>
         <p><strong>日期時間：</strong>${data.eventDate}</p>
         <p><strong>活動地點：</strong>${data.eventVenue}</p>
       </div>
 
       <p class="message">
-        活動包括：<br>
-        🍽️ 晚宴<br>
-        🍸 雞尾酒會<br>
-        🎨 工作坊體驗（皮革 / 香水）
+        活動包括：
       </p>
+      <ul style="margin: 20px 0; padding-left: 20px; line-height: 1.8;">
+        <li>晚宴</li>
+        <li>雞尾酒會</li>
+        <li>工作坊體驗（皮革 / 香水）</li>
+      </ul>
 
       <center>
         <a href="${data.inviteUrl}" class="cta-button">
-          立即確認出席 →
+          立即確認出席
         </a>
       </center>
 
@@ -191,15 +187,8 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px 30px;
+      padding: 0;
       text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
     }
     .content {
       padding: 40px 30px;
@@ -236,8 +225,8 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
     }
     .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: #bfdbfe;
+      color: #000000;
       padding: 16px 40px;
       text-decoration: none;
       border-radius: 8px;
@@ -249,6 +238,7 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
     }
     .cta-button:hover {
       transform: translateY(-2px);
+      background: #93c5fd;
     }
     .footer {
       background: #f8f9fa;
@@ -262,7 +252,7 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
 <body>
   <div class="container">
     <div class="header">
-      <h1>✨ ${data.eventName} ✨</h1>
+      <img src="https://rsvp.momini.app/images/logo.jpeg" alt="${data.eventName}" style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 12px 12px 0 0;" />
     </div>
     <div class="content">
       <p class="greeting">尊敬的 <strong>${data.guestName}</strong>，</p>
@@ -271,27 +261,29 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
       </p>
       
       <div class="notice-box">
-        <strong>📝 重要提示：</strong><br>
+        <strong>重要提示：</strong><br>
         請在填寫 RSVP 表單時，輸入實際出席者的姓名及聯絡資料。
       </div>
 
       <div class="event-details">
-        <h3>📅 活動詳情</h3>
+        <h3>活動詳情</h3>
         <p><strong>活動名稱：</strong>${data.eventName}</p>
         <p><strong>日期時間：</strong>${data.eventDate}</p>
         <p><strong>活動地點：</strong>${data.eventVenue}</p>
       </div>
 
       <p class="message">
-        活動包括：<br>
-        🍽️ 晚宴<br>
-        🍸 雞尾酒會<br>
-        🎨 工作坊體驗（皮革 / 香水）
+        活動包括：
       </p>
+      <ul style="margin: 20px 0; padding-left: 20px; line-height: 1.8;">
+        <li>晚宴</li>
+        <li>雞尾酒會</li>
+        <li>工作坊體驗（皮革 / 香水）</li>
+      </ul>
 
       <center>
         <a href="${data.inviteUrl}" class="cta-button">
-          填寫出席者資料 →
+          填寫出席者資料
         </a>
       </center>
 
@@ -351,19 +343,8 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .header {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      padding: 40px 30px;
+      padding: 0;
       text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
-    }
-    .checkmark {
-      font-size: 48px;
-      margin-bottom: 10px;
     }
     .content {
       padding: 40px 30px;
@@ -441,17 +422,17 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
 <body>
   <div class="container">
     <div class="header">
-      <div class="checkmark">✓</div>
-      <h1>RSVP 確認成功！</h1>
+      <img src="https://rsvp.momini.app/images/logo.jpeg" alt="RSVP 確認成功" style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 12px 12px 0 0;" />
     </div>
     <div class="content">
+      <h2 style="color: #10b981; text-align: center; font-size: 28px; margin: 0 0 20px 0;">✓ RSVP 確認成功！</h2>
       <p class="greeting">親愛的 <strong>${data.guestName}</strong>，</p>
       <p class="message">
         感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：
       </p>
       
       <div class="summary-box">
-        <h3>📋 您的確認資料</h3>
+        <h3>您的確認資料</h3>
         <div class="summary-item">
           <span>姓名：</span>
           <strong>${data.guestName}</strong>
@@ -495,7 +476,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       </div>
 
       <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin-top: 30px;">
-        <h4 style="margin-top: 0; color: #10b981;">📅 活動詳情</h4>
+        <h4 style="margin-top: 0; color: #10b981;">活動詳情</h4>
         <p><strong>活動名稱：</strong>${data.eventName}</p>
         <p><strong>日期時間：</strong>${data.eventDate}</p>
         <p><strong>活動地點：</strong>${data.eventVenue}</p>

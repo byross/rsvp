@@ -1,21 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  output: 'export',
-  trailingSlash: true,
+  output: "export",
   images: {
     unoptimized: true,
   },
-  // Disable development features for clean static export
-  typescript: {
-    ignoreBuildErrors: false,
+  // 確保環境變量在構建時可用
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? 'https://rsvp-api.byross-tech.workers.dev' 
+        : 'http://localhost:8787'),
   },
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-  // Note: Static export doesn't support rewrites
-  // API calls use full URLs from NEXT_PUBLIC_API_URL
 };
 
 export default nextConfig;

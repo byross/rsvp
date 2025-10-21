@@ -4,7 +4,48 @@ import { Context, Next } from 'hono';
 import { verifyToken, extractToken } from './auth-utils';
 
 /**
- * Require authentication middleware
+ * Simple admin authentication middleware (for /api/admin/login based auth)
+ */
+export async function requireSimpleAuth(c: Context, next: Next): Promise<Response | void> {
+  const authHeader = c.req.header('Authorization');
+  
+  if (!authHeader) {
+    return c.json({ error: 'Unauthorized', message: 'No token provided' }, 401);
+  }
+
+  // Extract token from "Bearer <token>"
+  const token = authHeader.replace('Bearer ', '');
+
+  if (!token) {
+    return c.json({ error: 'Unauthorized', message: 'No token provided' }, 401);
+  }
+
+  // Simple verification - check if token format is valid
+  try {
+    const decoded = atob(token);
+    const parts = decoded.split(':');
+    
+    if (parts.length === 3 && parts[0] === 'admin') {
+      const timestamp = parseInt(parts[1]);
+      const now = Date.now();
+      
+      // Token valid for 24 hours
+      if (now - timestamp < 24 * 60 * 60 * 1000) {
+        // Add simple user info to context
+        c.set('user', { role: 'admin', username: 'admin' });
+        await next();
+        return;
+      }
+    }
+  } catch (e) {
+    // Invalid token format
+  }
+
+  return c.json({ error: 'Unauthorized', message: 'Invalid or expired token' }, 401);
+}
+
+/**
+ * Require authentication middleware (for JWT based auth)
  */
 export async function requireAuth(c: Context, next: Next): Promise<Response | void> {
   const authHeader = c.req.header('Authorization');

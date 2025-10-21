@@ -40,6 +40,15 @@ export default function ConfirmedPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-green-50 to-emerald-50">
       <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader className="space-y-4 text-center">
+          {/* Logo */}
+          <div className="w-full mb-4">
+            <img 
+              src="/images/logo.jpeg" 
+              alt="活動 Logo" 
+              className="w-full h-auto object-cover rounded-lg"
+            />
+          </div>
+          
           <div className="flex justify-center">
             <CheckCircle2 className="w-16 h-16 text-green-600" />
           </div>
@@ -92,6 +101,29 @@ export default function ConfirmedPage() {
             </div>
           )}
 
+          {/* Event Details */}
+          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <h3 className="font-semibold text-lg text-slate-700 mb-4">活動詳情</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
+                <span className="text-slate-600">2025年12月17日（星期三）</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
+                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
+                <div className="text-slate-600">
+                  <div>16:30 歡迎酒會及工作坊</div>
+                  <div>18:30 晚宴正式開始</div>
+                  <div>21:00 晚宴結束</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* QR Code Section */}
           <div className="p-8 bg-white border-2 border-dashed border-green-300 rounded-lg">
             <div className="space-y-4 text-center">
@@ -104,6 +136,21 @@ export default function ConfirmedPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   請查看您的郵箱，我們已發送確認郵件及活動 QR Code
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Parking Information */}
+          <div className="p-6 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <svg className="w-6 h-6 text-slate-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <div>
+                <h4 className="font-semibold text-slate-700 mb-1">停車資訊</h4>
+                <p className="text-sm text-slate-600">
+                  澳門安達仕酒店設有地下停車場，酒店賓客可免費停車。停車場24小時開放。
                 </p>
               </div>
             </div>

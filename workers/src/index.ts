@@ -4,7 +4,7 @@ import { generateQRCodeData } from './qr-generator';
 import { generateAndSaveQRCode } from './qr-storage';
 import { sendConfirmationEmail, sendInvitationEmail } from './emails/sender';
 import { hashPassword, verifyPassword, generateToken } from './auth-utils';
-import { requireAuth, requireSuperAdmin, requireAdmin } from './auth-middleware';
+import { requireAuth, requireSuperAdmin, requireSimpleAuth } from './auth-middleware';
 
 type Bindings = {
   DB: any; // D1Database
@@ -59,15 +59,11 @@ app.post('/api/admin/login', async (c) => {
     }
     
     if (password === c.env.ADMIN_PASSWORD) {
-      // Generate JWT token
-      const { generateToken } = await import('./auth-utils');
-      const token = await generateToken(
-        'admin',
-        'admin',
-        'admin',
-        c.env.QR_SECRET,
-        24 * 60 * 60 * 1000 // 24 hours
-      );
+      // Generate simple token (format: admin:timestamp:signature)
+      const timestamp = Date.now();
+      const signature = btoa(`${c.env.QR_SECRET}:${timestamp}`).substring(0, 16);
+      const tokenData = `admin:${timestamp}:${signature}`;
+      const token = btoa(tokenData);
       
       return c.json({ 
         success: true, 
@@ -496,7 +492,7 @@ app.post('/api/rsvp/:token', async (c) => {
 });
 
 // Get statistics (admin only)
-app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
+app.get('/api/admin/stats', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -540,7 +536,7 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (c) => {
 });
 
 // Search guests by name, phone, email, or company (admin only)
-app.get('/api/admin/guests/search', requireAuth, requireAdmin, async (c) => {
+app.get('/api/admin/guests/search', requireSimpleAuth, async (c) => {
   try {
     const query = c.req.query('q');
     
@@ -574,7 +570,7 @@ app.get('/api/admin/guests/search', requireAuth, requireAdmin, async (c) => {
 });
 
 // List all guests (admin only)
-app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
+app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -589,7 +585,7 @@ app.get('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
 });
 
 // Import guests from CSV (admin only)
-app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
+app.post('/api/admin/import', requireSimpleAuth, async (c) => {
   
   try {
     const body = await c.req.json();
@@ -686,7 +682,7 @@ app.post('/api/admin/import', requireAuth, requireAdmin, async (c) => {
 });
 
 // Export guests to CSV (admin only)
-app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
+app.get('/api/admin/export', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
@@ -750,7 +746,7 @@ app.get('/api/admin/export', requireAuth, requireAdmin, async (c) => {
 // ===== Invitation Email Operations =====
 
 // Send invitation email to a single guest
-app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) => {
+app.post('/api/admin/send-invitation/:id', requireSimpleAuth, async (c) => {
   try {
     const guestId = c.req.param('id');
     
@@ -819,7 +815,7 @@ app.post('/api/admin/send-invitation/:id', requireAuth, requireAdmin, async (c) 
 });
 
 // Send invitation emails to multiple guests
-app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => {
+app.post('/api/admin/send-invitations', requireSimpleAuth, async (c) => {
   try {
     const body = await c.req.json();
     const { guestIds } = body;
@@ -927,7 +923,7 @@ app.post('/api/admin/send-invitations', requireAuth, requireAdmin, async (c) => 
 // ===== Guest CRUD Operations =====
 
 // Create new guest
-app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
+app.post('/api/admin/guests', requireSimpleAuth, async (c) => {
   try {
     const body = await c.req.json();
     const { name, email, company, phone, invite_type } = body;
@@ -980,7 +976,7 @@ app.post('/api/admin/guests', requireAuth, requireAdmin, async (c) => {
 });
 
 // Update guest
-app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
   try {
     const guestId = c.req.param('id');
     const body = await c.req.json();
@@ -1052,7 +1048,7 @@ app.put('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
 });
 
 // Delete guest
-app.delete('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+app.delete('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
   try {
     const guestId = c.req.param('id');
     console.log('[Delete] Guest ID:', guestId);
@@ -1093,7 +1089,7 @@ app.delete('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
 });
 
 // Get single guest by ID
-app.get('/api/admin/guests/:id', requireAuth, requireAdmin, async (c) => {
+app.get('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
   try {
     const guestId = c.req.param('id');
 

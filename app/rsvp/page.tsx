@@ -187,7 +187,16 @@ function RSVPContent() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100">
       <Card className="w-full max-w-2xl shadow-lg">
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-4">
+          {/* Logo */}
+          <div className="w-full mb-4">
+            <img 
+              src="/images/logo.jpeg" 
+              alt="活動 Logo" 
+              className="w-full h-auto object-cover rounded-lg"
+            />
+          </div>
+          
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
             活動邀請
           </CardTitle>
@@ -196,6 +205,28 @@ function RSVPContent() {
               ? `親愛的 ${guest.name}，誠摯邀請您出席` 
               : '請填寫實際出席者資料'}
           </CardDescription>
+          
+          {/* Event Details */}
+          <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
+                <span className="text-slate-600">2025年12月17日（星期三）</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
+                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
+                <div className="text-slate-600">
+                  <div>16:30 歡迎酒會及工作坊</div>
+                  <div>18:30 晚宴正式開始</div>
+                  <div>21:00 晚宴結束</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -230,7 +261,18 @@ function RSVPContent() {
               <Label className="text-base font-semibold">出席晚宴 *</Label>
               <RadioGroup
                 value={formData.dinner === null ? '' : formData.dinner.toString()}
-                onValueChange={(value) => setFormData({ ...formData, dinner: value === 'true' })}
+                onValueChange={(value) => {
+                  const willAttend = value === 'true';
+                  setFormData({ 
+                    ...formData, 
+                    dinner: willAttend,
+                    // 如果選擇不出席，重置其他選項
+                    cocktail: willAttend ? formData.cocktail : false,
+                    workshop: willAttend ? formData.workshop : false,
+                    workshop_type: willAttend ? formData.workshop_type : '',
+                    workshop_time: willAttend ? formData.workshop_time : '',
+                  });
+                }}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="true" id="dinner-yes" />
@@ -243,26 +285,29 @@ function RSVPContent() {
               </RadioGroup>
             </div>
 
-            {/* Cocktail Party Attendance */}
-            <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
-              <Label className="text-base font-semibold">出席雞尾酒會 *</Label>
-              <RadioGroup
-                value={formData.cocktail === null ? '' : formData.cocktail.toString()}
-                onValueChange={(value) => setFormData({ ...formData, cocktail: value === 'true' })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="cocktail-yes" />
-                  <Label htmlFor="cocktail-yes" className="font-normal cursor-pointer">是，我會出席</Label>
+            {/* 只有選擇出席晚宴時才顯示以下選項 */}
+            {formData.dinner === true && (
+              <>
+                {/* Cocktail Party Attendance */}
+                <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
+                  <Label className="text-base font-semibold">出席雞尾酒會 *</Label>
+                  <RadioGroup
+                    value={formData.cocktail === null ? '' : formData.cocktail.toString()}
+                    onValueChange={(value) => setFormData({ ...formData, cocktail: value === 'true' })}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="cocktail-yes" />
+                      <Label htmlFor="cocktail-yes" className="font-normal cursor-pointer">是，我會出席</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="cocktail-no" />
+                      <Label htmlFor="cocktail-no" className="font-normal cursor-pointer">否，我無法出席</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="cocktail-no" />
-                  <Label htmlFor="cocktail-no" className="font-normal cursor-pointer">否，我無法出席</Label>
-                </div>
-              </RadioGroup>
-            </div>
 
-            {/* Workshop Selection */}
-            <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
+                {/* Workshop Selection */}
+                <div className="space-y-4 p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="workshop"
@@ -321,6 +366,8 @@ function RSVPContent() {
                 </div>
               )}
             </div>
+              </>
+            )}
 
             {/* Error Message */}
             {error && (
@@ -332,7 +379,7 @@ function RSVPContent() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg"
               size="lg"
               disabled={submitting}
             >
