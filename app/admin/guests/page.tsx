@@ -87,7 +87,6 @@ export default function GuestsPage() {
 
   // Email preview related states
   const [previewType, setPreviewType] = useState<'invitation' | 'confirmation' | null>(null);
-  const [previewGuestId, setPreviewGuestId] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [previewLoading, setPreviewLoading] = useState(false);
 
@@ -251,7 +250,6 @@ export default function GuestsPage() {
   const handlePreviewInvitation = async (guestId: string) => {
     try {
       setPreviewType('invitation');
-      setPreviewGuestId(guestId);
       setPreviewLoading(true);
       setPreviewHtml('');
 
@@ -276,7 +274,6 @@ export default function GuestsPage() {
   const handlePreviewConfirmation = async (guestId: string) => {
     try {
       setPreviewType('confirmation');
-      setPreviewGuestId(guestId);
       setPreviewLoading(true);
       setPreviewHtml('');
 
