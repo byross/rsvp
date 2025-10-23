@@ -104,7 +104,7 @@ export async function sendConfirmationEmail(
       guestName: params.guestName,
       dinner: params.dinner,
       cocktail: params.cocktail,
-      vegetarian: params.vegetarian,
+      vegetarian: params.vegetarian ?? false,
       workshopType: params.workshopType ?? null,
       workshopTime: params.workshopTime ?? null,
       qrCodeDataURL: params.qrCodeDataURL,
