@@ -44,13 +44,6 @@ export async function sendInvitationEmail(
   params: SendInvitationEmailParams
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    // 臨時限制：Resend 免費帳戶只能發送到自己的郵箱
-    if (params.to !== 'ross@byross.net') {
-      return { 
-        success: false, 
-        error: 'Resend 免費帳戶限制：只能發送到 ross@byross.net。請升級帳戶或驗證域名。' 
-      };
-    }
     const htmlContent = params.inviteType === 'named'
       ? generateNamedGuestInvitationEmail({
           guestName: params.guestName,
@@ -107,13 +100,6 @@ export async function sendConfirmationEmail(
   params: SendConfirmationEmailParams
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    // 臨時限制：Resend 免費帳戶只能發送到自己的郵箱
-    if (params.to !== 'ross@byross.net') {
-      return { 
-        success: false, 
-        error: 'Resend 免費帳戶限制：只能發送到 ross@byross.net。請升級帳戶或驗證域名。' 
-      };
-    }
     const htmlContent = generateConfirmationEmail({
       guestName: params.guestName,
       dinner: params.dinner,
