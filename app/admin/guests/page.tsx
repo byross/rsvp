@@ -28,6 +28,7 @@ interface Guest {
   email: string;
   phone: string | null;
   invite_type: 'named' | 'company';
+  guest_category: 'netcraft' | 'vip' | 'regular';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: number;
   cocktail: number;
@@ -48,6 +49,7 @@ interface GuestFormData {
   company: string;
   phone: string;
   invite_type: 'named' | 'company';
+  guest_category: 'netcraft' | 'vip' | 'regular';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: boolean;
   cocktail: boolean;
@@ -69,6 +71,7 @@ export default function GuestsPage() {
     company: '',
     phone: '',
     invite_type: 'named',
+    guest_category: 'netcraft',
     rsvp_status: 'pending',
     dinner: false,
     cocktail: false,
@@ -138,7 +141,8 @@ export default function GuestsPage() {
         email: formData.email,
         company: formData.company || null,
         phone: formData.phone || null,
-        invite_type: formData.invite_type
+        invite_type: formData.invite_type,
+        guest_category: formData.guest_category
       });
 
       if (response.ok) {
@@ -162,6 +166,7 @@ export default function GuestsPage() {
       company: guest.company || '',
       phone: guest.phone || '',
       invite_type: guest.invite_type,
+      guest_category: guest.guest_category,
       rsvp_status: guest.rsvp_status,
       dinner: guest.dinner === 1,
       cocktail: guest.cocktail === 1,
@@ -182,6 +187,7 @@ export default function GuestsPage() {
         company: formData.company || null,
         phone: formData.phone || null,
         invite_type: formData.invite_type,
+        guest_category: formData.guest_category,
         rsvp_status: formData.rsvp_status,
         dinner: formData.dinner,
         cocktail: formData.cocktail,
@@ -346,6 +352,7 @@ export default function GuestsPage() {
       company: '',
       phone: '',
       invite_type: 'named',
+      guest_category: 'netcraft',
       rsvp_status: 'pending',
       dinner: false,
       cocktail: false,
@@ -457,6 +464,19 @@ export default function GuestsPage() {
         return <Badge variant="outline">待回覆</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'netcraft':
+        return <Badge className="bg-blue-600">NetCraft 同事</Badge>;
+      case 'vip':
+        return <Badge className="bg-orange-600">VIP</Badge>;
+      case 'regular':
+        return <Badge className="bg-green-600">普通嘉賓</Badge>;
+      default:
+        return <Badge variant="outline">{category}</Badge>;
     }
   };
 
@@ -573,6 +593,19 @@ export default function GuestsPage() {
                       <SelectContent>
                         <SelectItem value="named">具名嘉賓</SelectItem>
                         <SelectItem value="company">公司邀請</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="guest_category" className="text-right">嘉賓分類 *</Label>
+                    <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'regular') => setFormData({...formData, guest_category: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="netcraft">NetCraft 同事</SelectItem>
+                        <SelectItem value="vip">VIP</SelectItem>
+                        <SelectItem value="regular">普通嘉賓</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -761,6 +794,7 @@ export default function GuestsPage() {
                       {showDetailedView && <TableHead>公司</TableHead>}
                       {showDetailedView && <TableHead>郵箱</TableHead>}
                       {showDetailedView && <TableHead>電話</TableHead>}
+                      <TableHead>分類</TableHead>
                       <TableHead>狀態</TableHead>
                       <TableHead>邀請狀態</TableHead>
                       <TableHead>晚宴</TableHead>
@@ -788,6 +822,7 @@ export default function GuestsPage() {
                             {guest.phone || '-'}
                           </TableCell>
                         )}
+                        <TableCell>{getCategoryBadge(guest.guest_category)}</TableCell>
                         <TableCell>{getStatusBadge(guest.rsvp_status)}</TableCell>
                         <TableCell>
                           {guest.invitation_sent ? (
@@ -976,6 +1011,20 @@ export default function GuestsPage() {
                   <SelectContent>
                     <SelectItem value="named">具名嘉賓</SelectItem>
                     <SelectItem value="company">公司邀請</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-guest-category">嘉賓分類 *</Label>
+                <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'regular') => setFormData({...formData, guest_category: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="netcraft">NetCraft 同事</SelectItem>
+                    <SelectItem value="vip">VIP</SelectItem>
+                    <SelectItem value="regular">普通嘉賓</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,5 +1,7 @@
 // Email HTML templates
 
+import { GuestCategory } from '../types';
+
 interface InvitationEmailData {
   guestName: string;
   inviteUrl: string;
@@ -16,9 +18,26 @@ interface ConfirmationEmailData {
   workshopType?: string | null;
   workshopTime?: string | null;
   qrCodeDataURL: string;
+  guestCategory: GuestCategory;
   eventName: string;
   eventDate: string;
   eventVenue: string;
+}
+
+/**
+ * Get border color for QR code based on guest category
+ */
+function getQRCodeBorderColor(category: GuestCategory): string {
+  switch (category) {
+    case 'netcraft':
+      return '#0A599C'; // NetCraft Blue
+    case 'vip':
+      return '#d97706'; // Gold/Orange
+    case 'regular':
+      return '#16a34a'; // Green
+    default:
+      return '#0A599C'; // Default to NetCraft blue
+  }
 }
 
 /**
@@ -384,7 +403,6 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       text-align: center;
       padding: 30px;
       background: white;
-      border: 3px dashed #10b981;
       border-radius: 12px;
       margin: 30px 0;
     }
@@ -393,6 +411,8 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       height: auto;
       display: block;
       margin: 0 auto;
+      border: 10px solid ${getQRCodeBorderColor(data.guestCategory)};
+      border-radius: 8px;
     }
     .qr-code-box p {
       margin-top: 15px;

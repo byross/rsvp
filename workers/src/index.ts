@@ -10,6 +10,7 @@ import {
 } from './emails/templates';
 import { hashPassword, verifyPassword, generateToken } from './auth-utils';
 import { requireAuth, requireSuperAdmin, requireSimpleAuth } from './auth-middleware';
+import { GuestCategory } from './types';
 
 type Bindings = {
   DB: any; // D1Database
@@ -450,6 +451,7 @@ app.post('/api/rsvp/:token', async (c) => {
       guest.id as string,
       token,
       guest.name as string,
+      guest.guest_category as GuestCategory,
       c.env.QR_SECRET
     );
     
@@ -457,6 +459,7 @@ app.post('/api/rsvp/:token', async (c) => {
       c.env.QR_BUCKET,
       guest.id as string,
       qrData,
+      guest.guest_category as GuestCategory,
       c.env.R2_PUBLIC_URL
     );
 
@@ -476,6 +479,7 @@ app.post('/api/rsvp/:token', async (c) => {
         workshopType: body.workshop_type,
         workshopTime: body.workshop_time,
         qrCodeDataURL: qrCodeUrl,
+        guestCategory: guest.guest_category as GuestCategory,
         eventName: c.env.EVENT_NAME,
         eventDate: c.env.EVENT_DATE,
         eventVenue: c.env.EVENT_VENUE,
@@ -555,7 +559,7 @@ app.get('/api/admin/guests/search', requireSimpleAuth, async (c) => {
     const searchPattern = `%${query}%`;
     const guests = await c.env.DB
       .prepare(`
-        SELECT id, name, email, company, phone, invite_type, token, rsvp_status, 
+        SELECT id, name, email, company, phone, invite_type, token, rsvp_status, guest_category,
                dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, 
                invitation_sent, invitation_sent_at, invitation_message_id, 
                created_at, updated_at 
@@ -582,7 +586,7 @@ app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, guest_category, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
       .all();
 
     return c.json(guests.results);
@@ -642,7 +646,7 @@ app.post('/api/admin/import', requireSimpleAuth, async (c) => {
       });
 
       try {
-        const { name, email, company, phone, invite_type } = row;
+        const { name, email, company, phone, invite_type, guest_category } = row;
 
         if (!name || !email || !invite_type) {
           errors.push(`第 ${i + 1} 行: 缺少必要欄位`);
@@ -656,18 +660,26 @@ app.post('/api/admin/import', requireSimpleAuth, async (c) => {
           continue;
         }
 
+        // Validate guest_category if provided
+        const category = guest_category || 'netcraft';
+        if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
+          errors.push(`第 ${i + 1} 行: guest_category 必須是 netcraft, vip 或 regular`);
+          failed++;
+          continue;
+        }
+
         const token = `token-${crypto.randomUUID()}`;
         const id = crypto.randomUUID();
 
         await c.env.DB
           .prepare(`
             INSERT INTO guests (
-              id, name, company, email, phone, token, invite_type,
+              id, name, company, email, phone, token, invite_type, guest_category,
               rsvp_status, dinner, cocktail, checked_in,
               created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, 0, datetime('now'), datetime('now'))
           `)
-          .bind(id, name, company || null, email, phone || null, token, invite_type)
+          .bind(id, name, company || null, email, phone || null, token, invite_type, category)
           .run();
 
         imported++;
@@ -694,14 +706,14 @@ app.get('/api/admin/export', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, guest_category, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
       .all();
 
     const results = guests.results as any[];
 
     // CSV headers
     const headers = [
-      'name', 'company', 'email', 'phone', 'invite_type', 'rsvp_status',
+      'name', 'company', 'email', 'phone', 'invite_type', 'guest_category', 'rsvp_status',
       'dinner', 'cocktail', 'vegetarian', 'workshop_type', 'workshop_time',
       'checked_in', 'created_at'
     ];
@@ -934,11 +946,17 @@ app.post('/api/admin/send-invitations', requireSimpleAuth, async (c) => {
 app.post('/api/admin/guests', requireSimpleAuth, async (c) => {
   try {
     const body = await c.req.json();
-    const { name, email, company, phone, invite_type } = body;
+    const { name, email, company, phone, invite_type, guest_category } = body;
 
     // Validate required fields
     if (!name || !email || !invite_type) {
       return c.json({ error: 'Missing required fields: name, email, invite_type' }, 400);
+    }
+
+    // Validate guest_category
+    const category = guest_category || 'netcraft';
+    if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
+      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, or regular' }, 400);
     }
 
     // Check if email already exists
@@ -955,9 +973,9 @@ app.post('/api/admin/guests', requireSimpleAuth, async (c) => {
 
     // Insert new guest
     const result = await c.env.DB.prepare(`
-      INSERT INTO guests (id, name, email, company, phone, invite_type, token, rsvp_status, 
+      INSERT INTO guests (id, name, email, company, phone, invite_type, guest_category, token, rsvp_status, 
                          dinner, cocktail, workshop_type, workshop_time, checked_in, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, 0, NULL, NULL, 0, datetime('now'))
     `).bind(
       crypto.randomUUID(),
       name,
@@ -965,6 +983,7 @@ app.post('/api/admin/guests', requireSimpleAuth, async (c) => {
       company || null,
       phone || null,
       invite_type,
+      category,
       token
     ).run();
 
@@ -990,11 +1009,17 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
     const body = await c.req.json();
     console.log('[Update] Guest ID:', guestId);
     console.log('[Update] Request body:', body);
-    const { name, email, company, phone, invite_type, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time } = body;
+    const { name, email, company, phone, invite_type, guest_category, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time } = body;
 
     // Validate required fields
     if (!name || !email || !invite_type) {
       return c.json({ error: 'Missing required fields: name, email, invite_type' }, 400);
+    }
+
+    // Validate guest_category
+    const category = guest_category || 'netcraft';
+    if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
+      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, or regular' }, 400);
     }
 
     // Check if email already exists for another guest
@@ -1007,7 +1032,7 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
     }
 
     // Update guest
-    const updateQuery = `UPDATE guests SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?, dinner = ?, cocktail = ?, vegetarian = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now') WHERE id = ?`;
+    const updateQuery = `UPDATE guests SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, guest_category = ?, rsvp_status = ?, dinner = ?, cocktail = ?, vegetarian = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now') WHERE id = ?`;
     console.log('[Update] SQL query:', updateQuery);
     
     const bindParams = [
@@ -1016,6 +1041,7 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
       company || null,
       phone || null,
       invite_type,
+      category,
       rsvp_status || 'pending',
       dinner ? 1 : 0,
       cocktail ? 1 : 0,
@@ -1103,7 +1129,7 @@ app.get('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
     const guestId = c.req.param('id');
 
     const guest = await c.env.DB.prepare(`
-      SELECT id, name, email, company, phone, invite_type, token, rsvp_status,
+      SELECT id, name, email, company, phone, invite_type, token, rsvp_status, guest_category,
              dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, 
              created_at, updated_at
       FROM guests 
@@ -1137,6 +1163,7 @@ app.post('/api/test-email', async (c) => {
         'test-id-123',
         'test-token-001',
         '測試用戶',
+        'netcraft',
         c.env.QR_SECRET
       );
       
@@ -1144,6 +1171,7 @@ app.post('/api/test-email', async (c) => {
         c.env.QR_BUCKET,
         'test-id-123',
         qrData,
+        'netcraft',
         c.env.R2_PUBLIC_URL
       );
 
@@ -1161,6 +1189,7 @@ app.post('/api/test-email', async (c) => {
           workshopType: 'leather',
           workshopTime: '1700',
           qrCodeDataURL: qrCodeUrl,
+          guestCategory: 'netcraft',
           eventName: c.env.EVENT_NAME,
           eventDate: c.env.EVENT_DATE,
           eventVenue: c.env.EVENT_VENUE,
@@ -1286,6 +1315,7 @@ app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
       guest.id as string,
       guest.token as string,
       guest.name as string,
+      guest.guest_category as GuestCategory,
       c.env.QR_SECRET
     );
     
@@ -1293,6 +1323,7 @@ app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
       c.env.QR_BUCKET,
       guest.id as string,
       qrData,
+      guest.guest_category as GuestCategory,
       c.env.R2_PUBLIC_URL
     );
 
@@ -1312,6 +1343,7 @@ app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
         workshopType: guest.workshop_type,
         workshopTime: guest.workshop_time,
         qrCodeDataURL: qrCodeUrl,
+        guestCategory: guest.guest_category as GuestCategory,
         eventName: c.env.EVENT_NAME,
         eventDate: c.env.EVENT_DATE,
         eventVenue: c.env.EVENT_VENUE,
@@ -1404,6 +1436,7 @@ app.get('/api/admin/preview-confirmation/:id', async (c) => {
         guest.id as string,
         guest.token as string,
         guest.name as string,
+        guest.guest_category as GuestCategory,
         c.env.QR_SECRET
       );
       
@@ -1432,6 +1465,7 @@ app.get('/api/admin/preview-confirmation/:id', async (c) => {
       workshopType: guest.workshop_type,
       workshopTime: guest.workshop_time,
       qrCodeDataURL: qrCodeDataURL,
+      guestCategory: guest.guest_category as GuestCategory,
       eventName: c.env.EVENT_NAME || '活動邀請',
       eventDate: c.env.EVENT_DATE || '2025年12月17日（星期三）',
       eventVenue: c.env.EVENT_VENUE || '澳門銀河國際會議中心地下宴會廳',

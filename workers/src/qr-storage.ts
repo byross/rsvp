@@ -1,5 +1,23 @@
 // QR Code storage utilities for R2
 
+import { GuestCategory } from './types';
+
+/**
+ * Get border color for QR code based on guest category
+ */
+export function getQRCodeBorderColor(category: GuestCategory): string {
+  switch (category) {
+    case 'netcraft':
+      return '#0A599C'; // NetCraft Blue
+    case 'vip':
+      return '#d97706'; // Gold/Orange
+    case 'regular':
+      return '#16a34a'; // Green
+    default:
+      return '#0A599C'; // Default to NetCraft blue
+  }
+}
+
 /**
  * Save QR code image to R2 and return public URL
  */
@@ -30,6 +48,7 @@ export async function generateAndSaveQRCode(
   bucket: any, // R2Bucket
   guestId: string,
   qrData: string,
+  category: GuestCategory,
   workerUrl: string
 ): Promise<string> {
   try {

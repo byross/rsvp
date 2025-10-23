@@ -1,9 +1,12 @@
 // QR Code generation and validation utilities
 
+import { GuestCategory } from './types';
+
 interface QRCodePayload {
   id: string;
   token: string;
   name: string;
+  category: GuestCategory;
   timestamp: number;
 }
 
@@ -42,6 +45,7 @@ export async function generateQRCodeData(
   guestId: string,
   token: string,
   name: string,
+  category: GuestCategory,
   secret: string
 ): Promise<string> {
   const timestamp = Date.now();
@@ -50,6 +54,7 @@ export async function generateQRCodeData(
     id: guestId,
     token,
     name,
+    category,
     timestamp,
   };
 
@@ -72,9 +77,10 @@ export async function generateQRCodeDataURL(
   guestId: string,
   token: string,
   name: string,
+  category: GuestCategory,
   secret: string
 ): Promise<string> {
-  const qrData = await generateQRCodeData(guestId, token, name, secret);
+  const qrData = await generateQRCodeData(guestId, token, name, category, secret);
 
   try {
     // Use QR Server API (free and reliable)
@@ -118,6 +124,7 @@ export async function parseAndValidateQRCode(
       id: data.id,
       token: data.token,
       name: data.name,
+      category: data.category || 'netcraft', // Default to netcraft for backward compatibility
       timestamp: data.timestamp,
     };
 

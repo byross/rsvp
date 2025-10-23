@@ -5,6 +5,7 @@ export type RsvpStatus = 'pending' | 'confirmed' | 'declined';
 export type WorkshopType = 'leather' | 'perfume' | null;
 export type WorkshopTime = '1630' | '1700' | '1730' | '1800' | null;
 export type ScanStatus = 'success' | 'duplicate' | 'error';
+export type GuestCategory = 'netcraft' | 'vip' | 'regular';
 
 export interface Guest {
   id: string;
@@ -14,6 +15,7 @@ export interface Guest {
   token: string;
   invite_type: InviteType;
   rsvp_status: RsvpStatus;
+  guest_category: GuestCategory;
   dinner: boolean;
   cocktail: boolean;
   vegetarian?: boolean;
@@ -46,5 +48,6 @@ export interface QRCodeData {
   id: string;
   token: string;
   checksum: string;
+  category: GuestCategory;
 }
 
