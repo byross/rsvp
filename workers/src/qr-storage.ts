@@ -48,7 +48,6 @@ export async function generateAndSaveQRCode(
   bucket: any, // R2Bucket
   guestId: string,
   qrData: string,
-  category: GuestCategory,
   workerUrl: string
 ): Promise<string> {
   try {

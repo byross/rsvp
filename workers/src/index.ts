@@ -459,7 +459,6 @@ app.post('/api/rsvp/:token', async (c) => {
       c.env.QR_BUCKET,
       guest.id as string,
       qrData,
-      guest.guest_category as GuestCategory,
       c.env.R2_PUBLIC_URL
     );
 
@@ -1171,7 +1170,6 @@ app.post('/api/test-email', async (c) => {
         c.env.QR_BUCKET,
         'test-id-123',
         qrData,
-        'netcraft',
         c.env.R2_PUBLIC_URL
       );
 
@@ -1323,7 +1321,6 @@ app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
       c.env.QR_BUCKET,
       guest.id as string,
       qrData,
-      guest.guest_category as GuestCategory,
       c.env.R2_PUBLIC_URL
     );
 

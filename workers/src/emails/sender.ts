@@ -5,6 +5,7 @@ import {
   generateCompanyInvitationEmail,
   generateConfirmationEmail 
 } from './templates';
+import { GuestCategory } from '../types';
 
 interface EmailConfig {
   resendApiKey: string;
@@ -31,6 +32,7 @@ interface SendConfirmationEmailParams {
   workshopType?: string | null;
   workshopTime?: string | null;
   qrCodeDataURL: string;
+  guestCategory: GuestCategory;
   eventName: string;
   eventDate: string;
   eventVenue: string;
@@ -108,6 +110,7 @@ export async function sendConfirmationEmail(
       workshopType: params.workshopType ?? null,
       workshopTime: params.workshopTime ?? null,
       qrCodeDataURL: params.qrCodeDataURL,
+      guestCategory: params.guestCategory,
       eventName: params.eventName,
       eventDate: params.eventDate,
       eventVenue: params.eventVenue,
