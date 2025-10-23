@@ -24,7 +24,7 @@ preview_bucket_name = "rsvp-qr-codes-preview"
 
 # Non-sensitive configuration
 [vars]
-RESEND_FROM_EMAIL = "onboarding@resend.dev"
+RESEND_FROM_EMAIL = "celebrate30@netcraft.com.mo"
 RESEND_FROM_NAME = "NetCraft Gala Dinner 邀請系統"
 EVENT_NAME = "天網(NetCraft)三十週年晚宴"
 EVENT_DATE = "2025-10-15"
