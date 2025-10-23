@@ -17,6 +17,7 @@ interface Guest {
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshop_type?: string;
   workshop_time?: string;
   checked_in: boolean;
@@ -184,6 +185,15 @@ export default function CheckinPage() {
                         {guest.cocktail ? '參加' : '不參加'}
                       </Badge>
                     </div>
+                    
+                    {guest.dinner && (
+                      <div>
+                        <p className="text-sm text-gray-600">飲食需求</p>
+                        <Badge variant={guest.vegetarian ? 'default' : 'outline'}>
+                          {guest.vegetarian ? '素食' : '一般'}
+                        </Badge>
+                      </div>
+                    )}
                     
                     {guest.workshop_type && (
                       <div className="md:col-span-2">

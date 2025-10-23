@@ -8,3 +8,4 @@ CREATE INDEX IF NOT EXISTS idx_guests_invitation_sent ON guests(invitation_sent)
 CREATE INDEX IF NOT EXISTS idx_guests_invitation_sent_at ON guests(invitation_sent_at);
 
 
+

@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -31,6 +31,7 @@ interface Guest {
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: number;
   cocktail: number;
+  vegetarian: number;
   workshop_type: string | null;
   workshop_time: string | null;
   checked_in: number;
@@ -50,6 +51,7 @@ interface GuestFormData {
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: boolean;
   cocktail: boolean;
+  vegetarian: boolean;
   workshop_type: string;
   workshop_time: string;
 }
@@ -70,6 +72,7 @@ export default function GuestsPage() {
     rsvp_status: 'pending',
     dinner: false,
     cocktail: false,
+    vegetarian: false,
     workshop_type: 'none',
     workshop_time: 'none'
   });
@@ -81,6 +84,12 @@ export default function GuestsPage() {
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkinStatus, setCheckinStatus] = useState<{type: 'success' | 'error' | 'warning' | null, message: string}>({type: null, message: ''});
+
+  // Email preview related states
+  const [previewType, setPreviewType] = useState<'invitation' | 'confirmation' | null>(null);
+  const [previewGuestId, setPreviewGuestId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string>('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     fetchGuests();
@@ -157,6 +166,7 @@ export default function GuestsPage() {
       rsvp_status: guest.rsvp_status,
       dinner: guest.dinner === 1,
       cocktail: guest.cocktail === 1,
+      vegetarian: guest.vegetarian === 1,
       workshop_type: guest.workshop_type || 'none',
       workshop_time: guest.workshop_time || 'none'
     });
@@ -176,8 +186,9 @@ export default function GuestsPage() {
         rsvp_status: formData.rsvp_status,
         dinner: formData.dinner,
         cocktail: formData.cocktail,
-          workshop_type: formData.workshop_type === 'none' ? null : formData.workshop_type,
-          workshop_time: formData.workshop_time === 'none' ? null : formData.workshop_time
+        vegetarian: formData.vegetarian,
+        workshop_type: formData.workshop_type === 'none' ? null : formData.workshop_type,
+        workshop_time: formData.workshop_time === 'none' ? null : formData.workshop_time
       });
 
       if (response.ok) {
@@ -237,6 +248,78 @@ export default function GuestsPage() {
     }
   };
 
+  const handlePreviewInvitation = async (guestId: string) => {
+    try {
+      setPreviewType('invitation');
+      setPreviewGuestId(guestId);
+      setPreviewLoading(true);
+      setPreviewHtml('');
+
+      const response = await apiGet(`/api/admin/preview-invitation/${guestId}`);
+      
+      if (response.ok) {
+        const htmlContent = await response.text();
+        setPreviewHtml(htmlContent);
+      } else {
+        const errorText = await response.text();
+        console.error('Preview invitation failed:', response.status, response.statusText, errorText);
+        alert(`預覽失敗：${response.status} ${response.statusText}\n${errorText}`);
+      }
+    } catch (error) {
+      console.error('Preview invitation error:', error);
+      alert('預覽載入失敗，請重試');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handlePreviewConfirmation = async (guestId: string) => {
+    try {
+      setPreviewType('confirmation');
+      setPreviewGuestId(guestId);
+      setPreviewLoading(true);
+      setPreviewHtml('');
+
+      const response = await apiGet(`/api/admin/preview-confirmation/${guestId}`);
+      
+      if (response.ok) {
+        const htmlContent = await response.text();
+        setPreviewHtml(htmlContent);
+      } else {
+        const errorText = await response.text();
+        console.error('Preview confirmation failed:', response.status, response.statusText, errorText);
+        alert(`預覽失敗：${response.status} ${response.statusText}\n${errorText}`);
+      }
+    } catch (error) {
+      console.error('Preview confirmation error:', error);
+      alert('預覽載入失敗，請重試');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleSendConfirmation = async (guestId: string, guestName: string, rsvpStatus: string) => {
+    if (rsvpStatus !== 'confirmed') {
+      alert('只能為已確認的嘉賓發送確認郵件');
+      return;
+    }
+    
+    if (!confirm(`確定要發送確認郵件給 ${guestName} 嗎？`)) return;
+    
+    try {
+      const response = await apiPost(`/api/admin/send-confirmation/${guestId}`, {});
+      if (response.ok) {
+        alert('確認郵件發送成功！');
+      } else {
+        const error = await response.json();
+        alert(`發送失敗：${error.error || '未知錯誤'}`);
+      }
+    } catch (error) {
+      console.error('Send confirmation failed:', error);
+      alert('發送失敗，請重試');
+    }
+  };
+
   const handleCopyRSVPLink = async (token: string) => {
     const rsvpUrl = `${window.location.origin}/rsvp?token=${token}`;
     try {
@@ -269,6 +352,7 @@ export default function GuestsPage() {
       rsvp_status: 'pending',
       dinner: false,
       cocktail: false,
+      vegetarian: false,
       workshop_type: 'none',
       workshop_time: 'none'
     });
@@ -600,6 +684,10 @@ export default function GuestsPage() {
                     <p className="font-medium">{selectedGuest.cocktail ? '✓ 參加' : '✗ 不參加'}</p>
                   </div>
                   <div>
+                    <p className="text-xs text-muted-foreground">素食</p>
+                    <p className="font-medium">{selectedGuest.vegetarian ? '✓ 需要' : '✗ 不需要'}</p>
+                  </div>
+                  <div>
                     <p className="text-xs text-muted-foreground">工作坊</p>
                     <p className="font-medium">
                       {selectedGuest.workshop_type ? (
@@ -680,6 +768,7 @@ export default function GuestsPage() {
                       <TableHead>邀請狀態</TableHead>
                       <TableHead>晚宴</TableHead>
                       <TableHead>雞尾酒</TableHead>
+                      {showDetailedView && <TableHead>素食</TableHead>}
                       <TableHead>工作坊</TableHead>
                       <TableHead>簽到</TableHead>
                       <TableHead className="w-[140px]">操作</TableHead>
@@ -720,6 +809,11 @@ export default function GuestsPage() {
                         <TableCell>
                           {guest.cocktail ? '✓' : '-'}
                         </TableCell>
+                        {showDetailedView && (
+                          <TableCell>
+                            {guest.vegetarian ? '✓' : '-'}
+                          </TableCell>
+                        )}
                         <TableCell className="text-sm">
                           {formatWorkshop(guest.workshop_type, guest.workshop_time)}
                         </TableCell>
@@ -771,6 +865,34 @@ export default function GuestsPage() {
                                 <Mail className="h-4 w-4" />
                               </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handlePreviewInvitation(guest.id)}
+                              className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
+                              title="預覽邀請郵件"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSendConfirmation(guest.id, guest.name, guest.rsvp_status)}
+                              disabled={guest.rsvp_status !== 'confirmed'}
+                              className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 disabled:opacity-30"
+                              title="發送確認郵件（含 QR Code）"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handlePreviewConfirmation(guest.id)}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                              title="預覽確認郵件"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -893,6 +1015,14 @@ export default function GuestsPage() {
                     />
                     <Label htmlFor="edit-cocktail">參加雞尾酒會</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-vegetarian"
+                      checked={formData.vegetarian}
+                      onCheckedChange={(checked) => setFormData({...formData, vegetarian: checked as boolean})}
+                    />
+                    <Label htmlFor="edit-vegetarian">素食</Label>
+                  </div>
                 </div>
               </div>
 
@@ -932,6 +1062,44 @@ export default function GuestsPage() {
               <Button onClick={handleUpdateGuest} disabled={!formData.name || !formData.email}>
                 <Save className="w-4 h-4 mr-2" />
                 保存
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Preview Dialog */}
+        <Dialog open={previewType !== null} onOpenChange={(open) => !open && setPreviewType(null)}>
+          <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>
+                {previewType === 'invitation' ? '邀請郵件預覽' : '確認郵件預覽'}
+              </DialogTitle>
+              <DialogDescription>
+                預覽郵件樣式和內容
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto max-h-[70vh]">
+              {previewLoading ? (
+                <div className="flex items-center justify-center h-96">
+                  <div className="text-center">
+                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-slate-400" />
+                    <p className="text-muted-foreground">載入郵件預覽中...</p>
+                  </div>
+                </div>
+              ) : previewHtml ? (
+                <div
+                  className="border rounded-lg p-4 bg-white"
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-96">
+                  <p className="text-muted-foreground">預覽載入失敗</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPreviewType(null)}>
+                關閉
               </Button>
             </DialogFooter>
           </DialogContent>

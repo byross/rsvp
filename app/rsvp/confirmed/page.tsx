@@ -8,6 +8,7 @@ interface ConfirmationData {
   name: string;
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshop_type: string | null;
   workshop_time: string | null;
 }
@@ -81,6 +82,12 @@ export default function ConfirmedPage() {
                     {confirmationData.cocktail ? '✓ 出席' : '✗ 不出席'}
                   </span>
                 </div>
+                {confirmationData.dinner && confirmationData.vegetarian && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">飲食需求：</span>
+                    <span className="font-medium">素食</span>
+                  </div>
+                )}
                 {confirmationData.workshop_type && (
                   <>
                     <div className="flex justify-between py-2 border-b">

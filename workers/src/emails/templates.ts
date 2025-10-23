@@ -12,6 +12,7 @@ interface ConfirmationEmailData {
   guestName: string;
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshopType?: string | null;
   workshopTime?: string | null;
   qrCodeDataURL: string;
@@ -390,6 +391,8 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
     .qr-code-box img {
       max-width: 250px;
       height: auto;
+      display: block;
+      margin: 0 auto;
     }
     .qr-code-box p {
       margin-top: 15px;
@@ -445,6 +448,12 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           <span>雞尾酒會：</span>
           <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
         </div>
+        ${data.vegetarian ? `
+        <div class="summary-item">
+          <span>飲食需求：</span>
+          <strong>素食</strong>
+        </div>
+        ` : ''}
         ${workshopName ? `
         <div class="summary-item">
           <span>工作坊：</span>
@@ -470,6 +479,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           <li>請妥善保存此郵件及 QR Code</li>
           <li>活動當日請提早 15 分鐘到達</li>
           <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
+          ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
           ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
           <li>如需修改資料，請聯絡活動負責人</li>
         </ul>

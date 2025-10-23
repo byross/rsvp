@@ -3,6 +3,11 @@ import { cors } from 'hono/cors';
 import { generateQRCodeData } from './qr-generator';
 import { generateAndSaveQRCode } from './qr-storage';
 import { sendConfirmationEmail, sendInvitationEmail } from './emails/sender';
+import { 
+  generateNamedGuestInvitationEmail, 
+  generateCompanyInvitationEmail,
+  generateConfirmationEmail 
+} from './emails/templates';
 import { hashPassword, verifyPassword, generateToken } from './auth-utils';
 import { requireAuth, requireSuperAdmin, requireSimpleAuth } from './auth-middleware';
 
@@ -423,6 +428,7 @@ app.post('/api/rsvp/:token', async (c) => {
           rsvp_status = ?,
           dinner = ?,
           cocktail = ?,
+          vegetarian = ?,
           workshop_type = ?,
           workshop_time = ?,
           updated_at = datetime('now')
@@ -432,6 +438,7 @@ app.post('/api/rsvp/:token', async (c) => {
         rsvpStatus,
         body.dinner ? 1 : 0,
         body.cocktail ? 1 : 0,
+        body.vegetarian ? 1 : 0,
         body.workshop_type || null,
         body.workshop_time || null,
         token
@@ -465,6 +472,7 @@ app.post('/api/rsvp/:token', async (c) => {
         guestName: body.name || guest.name as string,
         dinner: body.dinner,
         cocktail: body.cocktail,
+        vegetarian: body.vegetarian,
         workshopType: body.workshop_type,
         workshopTime: body.workshop_time,
         qrCodeDataURL: qrCodeUrl,
@@ -548,7 +556,7 @@ app.get('/api/admin/guests/search', requireSimpleAuth, async (c) => {
     const guests = await c.env.DB
       .prepare(`
         SELECT id, name, email, company, phone, invite_type, token, rsvp_status, 
-               dinner, cocktail, workshop_type, workshop_time, checked_in, 
+               dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, 
                invitation_sent, invitation_sent_at, invitation_message_id, 
                created_at, updated_at 
         FROM guests 
@@ -574,7 +582,7 @@ app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
       .all();
 
     return c.json(guests.results);
@@ -686,7 +694,7 @@ app.get('/api/admin/export', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
+      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, created_at FROM guests ORDER BY created_at DESC')
       .all();
 
     const results = guests.results as any[];
@@ -694,7 +702,7 @@ app.get('/api/admin/export', requireSimpleAuth, async (c) => {
     // CSV headers
     const headers = [
       'name', 'company', 'email', 'phone', 'invite_type', 'rsvp_status',
-      'dinner', 'cocktail', 'workshop_type', 'workshop_time',
+      'dinner', 'cocktail', 'vegetarian', 'workshop_type', 'workshop_time',
       'checked_in', 'created_at'
     ];
 
@@ -707,7 +715,7 @@ app.get('/api/admin/export', requireSimpleAuth, async (c) => {
         
         // Convert boolean/number to string
         if (typeof value === 'number') {
-          if (header === 'dinner' || header === 'cocktail' || header === 'checked_in') {
+          if (header === 'dinner' || header === 'cocktail' || header === 'vegetarian' || header === 'checked_in') {
             value = value ? 'Yes' : 'No';
           }
         }
@@ -982,7 +990,7 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
     const body = await c.req.json();
     console.log('[Update] Guest ID:', guestId);
     console.log('[Update] Request body:', body);
-    const { name, email, company, phone, invite_type, rsvp_status, dinner, cocktail, workshop_type, workshop_time } = body;
+    const { name, email, company, phone, invite_type, rsvp_status, dinner, cocktail, vegetarian, workshop_type, workshop_time } = body;
 
     // Validate required fields
     if (!name || !email || !invite_type) {
@@ -999,7 +1007,7 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
     }
 
     // Update guest
-    const updateQuery = `UPDATE guests SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?, dinner = ?, cocktail = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now') WHERE id = ?`;
+    const updateQuery = `UPDATE guests SET name = ?, email = ?, company = ?, phone = ?, invite_type = ?, rsvp_status = ?, dinner = ?, cocktail = ?, vegetarian = ?, workshop_type = ?, workshop_time = ?, updated_at = datetime('now') WHERE id = ?`;
     console.log('[Update] SQL query:', updateQuery);
     
     const bindParams = [
@@ -1011,6 +1019,7 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
       rsvp_status || 'pending',
       dinner ? 1 : 0,
       cocktail ? 1 : 0,
+      vegetarian ? 1 : 0,
       workshop_type || null,
       workshop_time || null,
       guestId
@@ -1095,7 +1104,7 @@ app.get('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
 
     const guest = await c.env.DB.prepare(`
       SELECT id, name, email, company, phone, invite_type, token, rsvp_status,
-             dinner, cocktail, workshop_type, workshop_time, checked_in, 
+             dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, 
              created_at, updated_at
       FROM guests 
       WHERE id = ?
@@ -1247,6 +1256,191 @@ app.post('/api/scan', async (c) => {
   } catch (error) {
     console.error('Database error:', error);
     return c.json({ error: 'Check-in failed' }, 500);
+  }
+});
+
+// ===== Manual Confirmation Email Operations =====
+
+// Send confirmation email manually (admin only)
+app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
+  try {
+    const guestId = c.req.param('id');
+    
+    // Get guest details
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE id = ?')
+      .bind(guestId)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    // Check if guest is confirmed
+    if (guest.rsvp_status !== 'confirmed') {
+      return c.json({ error: '只能為已確認的嘉賓發送確認郵件' }, 400);
+    }
+
+    // Generate QR Code data and save to R2
+    const qrData = await generateQRCodeData(
+      guest.id as string,
+      guest.token as string,
+      guest.name as string,
+      c.env.QR_SECRET
+    );
+    
+    const qrCodeUrl = await generateAndSaveQRCode(
+      c.env.QR_BUCKET,
+      guest.id as string,
+      qrData,
+      c.env.R2_PUBLIC_URL
+    );
+
+    // Send confirmation email
+    const emailResult = await sendConfirmationEmail(
+      {
+        resendApiKey: c.env.RESEND_API_KEY,
+        fromEmail: c.env.RESEND_FROM_EMAIL,
+        fromName: c.env.RESEND_FROM_NAME,
+      },
+      {
+        to: guest.email as string,
+        guestName: guest.name as string,
+        dinner: guest.dinner === 1,
+        cocktail: guest.cocktail === 1,
+        vegetarian: guest.vegetarian === 1,
+        workshopType: guest.workshop_type,
+        workshopTime: guest.workshop_time,
+        qrCodeDataURL: qrCodeUrl,
+        eventName: c.env.EVENT_NAME,
+        eventDate: c.env.EVENT_DATE,
+        eventVenue: c.env.EVENT_VENUE,
+      }
+    );
+
+    if (emailResult.success) {
+      return c.json({ 
+        success: true, 
+        message: '確認郵件發送成功',
+        messageId: emailResult.messageId,
+        qrCodeUrl: qrCodeUrl
+      });
+    } else {
+      return c.json({ 
+        success: false, 
+        error: emailResult.error || '發送確認郵件失敗' 
+      }, 500);
+    }
+  } catch (error) {
+    console.error('Send confirmation error:', error);
+    return c.json({ error: 'Failed to send confirmation', details: error instanceof Error ? error.message : String(error) }, 500);
+  }
+});
+
+// ===== Email Preview Operations =====
+
+// Preview invitation email HTML
+app.get('/api/admin/preview-invitation/:id', async (c) => {
+  try {
+    const guestId = c.req.param('id');
+    
+    // Get guest details
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE id = ?')
+      .bind(guestId)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    // Generate invitation URL
+    const inviteUrl = `${c.env.FRONTEND_URL}/rsvp?token=${guest.token}`;
+
+    // Generate HTML based on invite type
+    const htmlContent = guest.invite_type === 'named'
+      ? generateNamedGuestInvitationEmail({
+          guestName: guest.name as string,
+          inviteUrl: inviteUrl,
+          eventName: c.env.EVENT_NAME || '活動邀請',
+          eventDate: c.env.EVENT_DATE || '2025年12月17日（星期三）',
+          eventVenue: c.env.EVENT_VENUE || '澳門銀河國際會議中心地下宴會廳',
+        })
+      : generateCompanyInvitationEmail({
+          guestName: guest.name as string,
+          inviteUrl: inviteUrl,
+          eventName: c.env.EVENT_NAME || '活動邀請',
+          eventDate: c.env.EVENT_DATE || '2025年12月17日（星期三）',
+          eventVenue: c.env.EVENT_VENUE || '澳門銀河國際會議中心地下宴會廳',
+        });
+
+    return c.html(htmlContent);
+  } catch (error) {
+    console.error('Preview invitation error:', error);
+    return c.json({ error: 'Failed to preview invitation', details: error instanceof Error ? error.message : String(error) }, 500);
+  }
+});
+
+// Preview confirmation email HTML
+app.get('/api/admin/preview-confirmation/:id', async (c) => {
+  try {
+    const guestId = c.req.param('id');
+    
+    // Get guest details
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE id = ?')
+      .bind(guestId)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    // Generate a preview QR code (for preview purposes only)
+    let qrCodeDataURL: string;
+    try {
+      // Try to generate a real QR code for preview
+      const qrData = await generateQRCodeData(
+        guest.id as string,
+        guest.token as string,
+        guest.name as string,
+        c.env.QR_SECRET
+      );
+      
+      // Generate QR code as data URL for preview (not saved to R2)
+      const qrResponse = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`);
+      if (qrResponse.ok) {
+        const qrBlob = await qrResponse.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(qrBlob)));
+        qrCodeDataURL = `data:image/png;base64,${base64}`;
+      } else {
+        // Fallback to placeholder if QR generation fails
+        qrCodeDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+      }
+    } catch (error) {
+      console.error('QR code generation failed for preview:', error);
+      // Use placeholder if QR generation fails
+      qrCodeDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    }
+
+    // Generate confirmation email HTML
+    const htmlContent = generateConfirmationEmail({
+      guestName: guest.name as string,
+      dinner: guest.dinner === 1,
+      cocktail: guest.cocktail === 1,
+      vegetarian: guest.vegetarian === 1,
+      workshopType: guest.workshop_type,
+      workshopTime: guest.workshop_time,
+      qrCodeDataURL: qrCodeDataURL,
+      eventName: c.env.EVENT_NAME || '活動邀請',
+      eventDate: c.env.EVENT_DATE || '2025年12月17日（星期三）',
+      eventVenue: c.env.EVENT_VENUE || '澳門銀河國際會議中心地下宴會廳',
+    });
+
+    return c.html(htmlContent);
+  } catch (error) {
+    console.error('Preview confirmation error:', error);
+    return c.json({ error: 'Failed to preview confirmation', details: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 

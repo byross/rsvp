@@ -16,6 +16,7 @@ export interface Guest {
   rsvp_status: RsvpStatus;
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshop_type?: WorkshopType;
   workshop_time?: WorkshopTime;
   seat_no?: string;
@@ -36,6 +37,7 @@ export interface RsvpSubmission {
   name?: string;
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshop_type?: WorkshopType;
   workshop_time?: WorkshopTime;
 }

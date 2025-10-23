@@ -27,6 +27,7 @@ interface SendConfirmationEmailParams {
   guestName: string;
   dinner: boolean;
   cocktail: boolean;
+  vegetarian?: boolean;
   workshopType?: string | null;
   workshopTime?: string | null;
   qrCodeDataURL: string;
@@ -103,6 +104,7 @@ export async function sendConfirmationEmail(
       guestName: params.guestName,
       dinner: params.dinner,
       cocktail: params.cocktail,
+      vegetarian: params.vegetarian,
       workshopType: params.workshopType ?? null,
       workshopTime: params.workshopTime ?? null,
       qrCodeDataURL: params.qrCodeDataURL,

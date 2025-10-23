@@ -31,3 +31,4 @@ echo ""
 echo "🎉 構建驗證通過！"
 echo "💡 提示：使用 'npx serve out' 來本地預覽"
 
+

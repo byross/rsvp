@@ -26,6 +26,7 @@ interface FormData {
   company: string;
   dinner: boolean | null;
   cocktail: boolean | null;
+  vegetarian: boolean;
   workshop: boolean;
   workshop_type: string;
   workshop_time: string;
@@ -45,6 +46,7 @@ function RSVPContent() {
     company: '',
     dinner: null,
     cocktail: null,
+    vegetarian: false,
     workshop: false,
     workshop_type: '',
     workshop_time: '',
@@ -133,6 +135,7 @@ function RSVPContent() {
           company: formData.company,
           dinner: formData.dinner,
           cocktail: formData.cocktail,
+          vegetarian: formData.vegetarian,
           workshop_type: formData.workshop ? formData.workshop_type : null,
           workshop_time: formData.workshop ? formData.workshop_time : null,
         }),
@@ -147,6 +150,7 @@ function RSVPContent() {
         name: formData.name,
         dinner: formData.dinner,
         cocktail: formData.cocktail,
+        vegetarian: formData.vegetarian,
         workshop_type: formData.workshop ? formData.workshop_type : null,
         workshop_time: formData.workshop ? formData.workshop_time : null,
       }));
@@ -268,6 +272,7 @@ function RSVPContent() {
                     dinner: willAttend,
                     // 如果選擇不出席，重置其他選項
                     cocktail: willAttend ? formData.cocktail : false,
+                    vegetarian: willAttend ? formData.vegetarian : false,
                     workshop: willAttend ? formData.workshop : false,
                     workshop_type: willAttend ? formData.workshop_type : '',
                     workshop_time: willAttend ? formData.workshop_time : '',
@@ -304,6 +309,23 @@ function RSVPContent() {
                       <Label htmlFor="cocktail-no" className="font-normal cursor-pointer">否，我無法出席</Label>
                     </div>
                   </RadioGroup>
+                </div>
+
+                {/* Vegetarian Option */}
+                <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="vegetarian"
+                      checked={formData.vegetarian}
+                      onCheckedChange={(checked) => setFormData({ ...formData, vegetarian: checked as boolean })}
+                    />
+                    <Label htmlFor="vegetarian" className="text-base font-semibold cursor-pointer">
+                      素食餐點
+                    </Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground ml-6">
+                    請勾選此選項，我們將為您準備素食餐點
+                  </p>
                 </div>
 
                 {/* Workshop Selection */}

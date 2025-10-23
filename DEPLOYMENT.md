@@ -184,3 +184,4 @@ Next.js 的靜態導出 (`output: "export"`) 在**構建時**就確定了所有�
 - **2025-10-21**: 更新 `next.config.ts`，添加明確的 fallback 配置
 - **2025-10-21**: 簡化 `lib/config.ts`，移除不可靠的運行時判斷
 
+
