@@ -379,7 +379,7 @@ export default function LeatherWorkshopCheckinPage() {
 
             <Tabs value={activeTime} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                {times.map((time, index) => (
+                {times.map((time) => (
                   <TabsTrigger key={time} value={time}>
                     {time.slice(0, 2)}:{time.slice(2)}
                   </TabsTrigger>
