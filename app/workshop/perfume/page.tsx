@@ -21,23 +21,6 @@ interface Guest {
   workshop_time?: string;
 }
 
-interface WorkshopCheckinGuest {
-  id: string;
-  checked_in_at: string;
-  name: string;
-  company?: string;
-  email: string;
-  phone?: string;
-  invite_type: 'named' | 'company';
-  rsvp_status: 'pending' | 'confirmed' | 'declined';
-}
-
-interface WorkshopCheckinsResponse {
-  workshop_type: string;
-  workshop_time: string;
-  checkins: WorkshopCheckinGuest[];
-}
-
 interface WorkshopGuest {
   id: string;
   name: string;
@@ -64,7 +47,6 @@ export default function PerfumeWorkshopCheckinPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [checkins, setCheckins] = useState<{[key: string]: WorkshopCheckinGuest[]}>({});
   const [guests, setGuests] = useState<{[key: string]: WorkshopGuest[]}>({});
   const [loadingCheckins, setLoadingCheckins] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,15 +79,14 @@ export default function PerfumeWorkshopCheckinPage() {
     inputRef.current?.focus();
   }, [guest]);
 
-  // 載入所有時段的嘉賓列表和簽到列表（只在需要時調用）
+  // 載入所有時段的嘉賓列表（只在需要時調用）
   const loadCheckins = useCallback(async () => {
     setLoadingCheckins(true);
-    const newCheckins: {[key: string]: WorkshopCheckinGuest[]} = {};
     const newGuests: {[key: string]: WorkshopGuest[]} = {};
     
     try {
       for (const time of times) {
-        // 載入嘉賓列表（選擇了該時段的所有嘉賓）
+        // 載入嘉賓列表（選擇了該時段的所有嘉賓，包含簽到狀態）
         const guestsResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_GUESTS('perfume', time), {
           method: 'GET',
         });
@@ -116,21 +97,8 @@ export default function PerfumeWorkshopCheckinPage() {
         } else {
           newGuests[time] = [];
         }
-
-        // 載入簽到列表（已經簽到的嘉賓）
-        const checkinsResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_CHECKINS('perfume', time), {
-          method: 'GET',
-        });
-        
-        if (checkinsResponse.ok) {
-          const checkinsData: WorkshopCheckinsResponse = await checkinsResponse.json();
-          newCheckins[time] = checkinsData.checkins;
-        } else {
-          newCheckins[time] = [];
-        }
       }
       setGuests(newGuests);
-      setCheckins(newCheckins);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
