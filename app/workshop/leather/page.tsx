@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ interface WorkshopGuestsResponse {
   guests: WorkshopGuest[];
 }
 
-export default function LeatherWorkshopCheckinPage() {
+function LeatherWorkshopCheckinContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [token, setToken] = useState('');
@@ -454,5 +454,22 @@ export default function LeatherWorkshopCheckinPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function LeatherWorkshopCheckinPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex min-h-screen flex-col items-center justify-start p-8 pt-16">
+        <Card className="w-full max-w-6xl">
+          <CardHeader>
+            <CardTitle>皮革工作坊簽到</CardTitle>
+            <CardDescription>載入中...</CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    }>
+      <LeatherWorkshopCheckinContent />
+    </Suspense>
   );
 }
