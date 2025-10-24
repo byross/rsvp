@@ -421,6 +421,37 @@ app.post('/api/rsvp/:token', async (c) => {
       rsvpStatus = 'declined';
     }
 
+    // Check workshop capacity if workshop is selected
+    if (body.workshop_type && body.workshop_time && rsvpStatus === 'confirmed') {
+      const capacityResult = await c.env.DB
+        .prepare(`
+          SELECT COUNT(*) as count 
+          FROM guests 
+          WHERE workshop_type = ? 
+            AND workshop_time = ? 
+            AND rsvp_status = 'confirmed'
+        `)
+        .bind(body.workshop_type, body.workshop_time)
+        .first();
+
+      const currentCount = (capacityResult as any)?.count || 0;
+      
+      // Define capacity limits
+      const capacityLimits = {
+        leather: 30,
+        perfume: 40
+      };
+      
+      const limit = capacityLimits[body.workshop_type as keyof typeof capacityLimits];
+      
+      if (currentCount >= limit) {
+        return c.json({ 
+          error: `該時段已滿（${body.workshop_type === 'leather' ? '皮革' : '調香'}工作坊 ${body.workshop_time.slice(0, 2)}:${body.workshop_time.slice(2)} 已達上限 ${limit} 人）`,
+          code: 'WORKSHOP_FULL'
+        }, 400);
+      }
+    }
+
     // Update guest RSVP data (name and company are not editable by guest)
     await c.env.DB
       .prepare(`
@@ -499,6 +530,204 @@ app.post('/api/rsvp/:token', async (c) => {
   } catch (error) {
     console.error('Database error:', error);
     return c.json({ error: 'Failed to submit RSVP' }, 500);
+  }
+});
+
+// Get workshop availability
+app.get('/api/workshop/availability', async (c) => {
+  try {
+    const times = ['1630', '1700', '1730', '1800'];
+    const workshopTypes = ['leather', 'perfume'];
+    const capacityLimits = {
+      leather: 30,
+      perfume: 40
+    };
+
+    const availability: any = {
+      leather: {},
+      perfume: {}
+    };
+
+    for (const workshopType of workshopTypes) {
+      for (const time of times) {
+        const result = await c.env.DB
+          .prepare(`
+            SELECT COUNT(*) as count 
+            FROM guests 
+            WHERE workshop_type = ? 
+              AND workshop_time = ? 
+              AND rsvp_status = 'confirmed'
+          `)
+          .bind(workshopType, time)
+          .first();
+
+        const booked = (result as any)?.count || 0;
+        const total = capacityLimits[workshopType as keyof typeof capacityLimits];
+        const available = Math.max(0, total - booked);
+
+        availability[workshopType][time] = {
+          total,
+          booked,
+          available
+        };
+      }
+    }
+
+    return c.json(availability);
+  } catch (error) {
+    console.error('Workshop availability error:', error);
+    return c.json({ error: 'Failed to get workshop availability' }, 500);
+  }
+});
+
+// Workshop check-in endpoints
+app.post('/api/workshop/leather/checkin', async (c) => {
+  const body = await c.req.json();
+  const { token } = body;
+
+  if (!token) {
+    return c.json({ error: 'Token is required' }, 400);
+  }
+
+  try {
+    // Get guest data
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE token = ?')
+      .bind(token)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Invalid token' }, 404);
+    }
+
+    // Check if guest has confirmed leather workshop
+    if (guest.workshop_type !== 'leather' || !guest.workshop_time) {
+      return c.json({ 
+        error: '該嘉賓未選擇皮革工作坊',
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 400);
+    }
+
+    // Check if already checked in to workshop
+    const existingCheckin = await c.env.DB
+      .prepare('SELECT * FROM workshop_checkins WHERE guest_id = ? AND workshop_type = ?')
+      .bind(guest.id, 'leather')
+      .first();
+
+    if (existingCheckin) {
+      return c.json({ 
+        status: 'duplicate',
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 200);
+    }
+
+    // Record workshop check-in
+    const checkinId = crypto.randomUUID();
+    await c.env.DB
+      .prepare(`
+        INSERT INTO workshop_checkins (id, guest_id, workshop_type, workshop_time, checked_in_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `)
+      .bind(checkinId, guest.id, 'leather', guest.workshop_time)
+      .run();
+
+    return c.json({ 
+      status: 'success',
+      guest: {
+        id: guest.id,
+        name: guest.name,
+        workshop_type: guest.workshop_type,
+        workshop_time: guest.workshop_time
+      }
+    });
+  } catch (error) {
+    console.error('Leather workshop checkin error:', error);
+    return c.json({ error: 'Workshop check-in failed' }, 500);
+  }
+});
+
+app.post('/api/workshop/perfume/checkin', async (c) => {
+  const body = await c.req.json();
+  const { token } = body;
+
+  if (!token) {
+    return c.json({ error: 'Token is required' }, 400);
+  }
+
+  try {
+    // Get guest data
+    const guest = await c.env.DB
+      .prepare('SELECT * FROM guests WHERE token = ?')
+      .bind(token)
+      .first();
+
+    if (!guest) {
+      return c.json({ error: 'Invalid token' }, 404);
+    }
+
+    // Check if guest has confirmed perfume workshop
+    if (guest.workshop_type !== 'perfume' || !guest.workshop_time) {
+      return c.json({ 
+        error: '該嘉賓未選擇調香工作坊',
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 400);
+    }
+
+    // Check if already checked in to workshop
+    const existingCheckin = await c.env.DB
+      .prepare('SELECT * FROM workshop_checkins WHERE guest_id = ? AND workshop_type = ?')
+      .bind(guest.id, 'perfume')
+      .first();
+
+    if (existingCheckin) {
+      return c.json({ 
+        status: 'duplicate',
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 200);
+    }
+
+    // Record workshop check-in
+    const checkinId = crypto.randomUUID();
+    await c.env.DB
+      .prepare(`
+        INSERT INTO workshop_checkins (id, guest_id, workshop_type, workshop_time, checked_in_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `)
+      .bind(checkinId, guest.id, 'perfume', guest.workshop_time)
+      .run();
+
+    return c.json({ 
+      status: 'success',
+      guest: {
+        id: guest.id,
+        name: guest.name,
+        workshop_type: guest.workshop_type,
+        workshop_time: guest.workshop_time
+      }
+    });
+  } catch (error) {
+    console.error('Perfume workshop checkin error:', error);
+    return c.json({ error: 'Workshop check-in failed' }, 500);
   }
 });
 

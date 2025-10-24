@@ -32,6 +32,21 @@ interface FormData {
   workshop_time: string;
 }
 
+interface WorkshopAvailability {
+  total: number;
+  booked: number;
+  available: number;
+}
+
+interface WorkshopAvailabilityResponse {
+  leather: {
+    [time: string]: WorkshopAvailability;
+  };
+  perfume: {
+    [time: string]: WorkshopAvailability;
+  };
+}
+
 function RSVPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,6 +56,7 @@ function RSVPContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [guest, setGuest] = useState<Guest | null>(null);
+  const [workshopAvailability, setWorkshopAvailability] = useState<WorkshopAvailabilityResponse | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     company: '',
@@ -52,7 +68,7 @@ function RSVPContent() {
     workshop_time: '',
   });
 
-  // Fetch guest data by token
+  // Fetch guest data and workshop availability by token
   useEffect(() => {
     if (!token) {
       setError('無效的邀請連結');
@@ -60,29 +76,38 @@ function RSVPContent() {
       return;
     }
 
-    const fetchGuest = async () => {
+    const fetchData = async () => {
       if (!token) {
         setError('無效的邀請連結');
         return;
       }
 
       try {
-        const response = await apiRequest(API_ENDPOINTS.RSVP_GET(token));
+        // Fetch guest data
+        const guestResponse = await apiRequest(API_ENDPOINTS.RSVP_GET(token));
         
-        if (!response.ok) {
+        if (!guestResponse.ok) {
           throw new Error('無法獲取邀請資料');
         }
 
-        const data = await response.json();
-        setGuest(data.guest);
+        const guestData = await guestResponse.json();
+        setGuest(guestData.guest);
         
         // Pre-fill name for named guests (情況一)
-        if (data.guest.invite_type === 'named') {
+        if (guestData.guest.invite_type === 'named') {
           setFormData(prev => ({
             ...prev,
-            name: data.guest.name,
-            company: data.guest.company || '',
+            name: guestData.guest.name,
+            company: guestData.guest.company || '',
           }));
+        }
+
+        // Fetch workshop availability
+        const availabilityResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_AVAILABILITY);
+        
+        if (availabilityResponse.ok) {
+          const availabilityData = await availabilityResponse.json();
+          setWorkshopAvailability(availabilityData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
@@ -91,7 +116,7 @@ function RSVPContent() {
       }
     };
 
-    fetchGuest();
+    fetchData();
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,7 +167,12 @@ function RSVPContent() {
       });
 
       if (!response.ok) {
-        throw new Error('提交失敗');
+        const errorData = await response.json();
+        if (errorData.code === 'WORKSHOP_FULL') {
+          setError(errorData.error);
+          return;
+        }
+        throw new Error(errorData.error || '提交失敗');
       }
 
       // Store confirmation data for display
@@ -378,10 +408,24 @@ function RSVPContent() {
                         <SelectValue placeholder="請選擇時段" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1630">16:30</SelectItem>
-                        <SelectItem value="1700">17:00</SelectItem>
-                        <SelectItem value="1730">17:30</SelectItem>
-                        <SelectItem value="1800">18:00</SelectItem>
+                        {['1630', '1700', '1730', '1800'].map((time) => {
+                          const timeDisplay = `${time.slice(0, 2)}:${time.slice(2)}`;
+                          const availability = workshopAvailability?.[formData.workshop_type as keyof WorkshopAvailabilityResponse]?.[time];
+                          const isFull = availability?.available === 0;
+                          const displayText = availability 
+                            ? `${timeDisplay} (剩餘 ${availability.available} 位)`
+                            : timeDisplay;
+                          
+                          return (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              disabled={isFull}
+                            >
+                              {isFull ? `${timeDisplay} (已滿)` : displayText}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>

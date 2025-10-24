@@ -51,3 +51,27 @@ export interface QRCodeData {
   category: GuestCategory;
 }
 
+export interface WorkshopCheckin {
+  id: string;
+  guest_id: string;
+  workshop_type: 'leather' | 'perfume';
+  workshop_time: string;
+  checked_in_at: string;
+  staff_id?: string;
+}
+
+export interface WorkshopAvailability {
+  total: number;
+  booked: number;
+  available: number;
+}
+
+export interface WorkshopAvailabilityResponse {
+  leather: {
+    [time: string]: WorkshopAvailability;
+  };
+  perfume: {
+    [time: string]: WorkshopAvailability;
+  };
+}
+

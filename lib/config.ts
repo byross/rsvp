@@ -37,6 +37,11 @@ export const API_ENDPOINTS = {
   
   // Checkin endpoints
   SCAN: '/api/scan',
+  
+  // Workshop endpoints
+  WORKSHOP_LEATHER_CHECKIN: '/api/workshop/leather/checkin',
+  WORKSHOP_PERFUME_CHECKIN: '/api/workshop/perfume/checkin',
+  WORKSHOP_AVAILABILITY: '/api/workshop/availability',
 } as const;
 
 /**
