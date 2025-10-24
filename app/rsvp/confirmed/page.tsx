@@ -61,6 +61,29 @@ export default function ConfirmedPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Event Details */}
+          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <h3 className="font-semibold text-lg text-slate-700 mb-4">活動詳情</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
+                <span className="text-slate-600">2025年12月17日（星期三）</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
+                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
+                <div className="text-slate-600">
+                  <div>16:30 歡迎酒會及工作坊</div>
+                  <div>18:30 晚宴正式開始</div>
+                  <div>21:00 晚宴結束</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Confirmation Summary */}
           {confirmationData && (
             <div className="p-6 bg-white border border-green-200 rounded-lg space-y-4">
@@ -107,29 +130,6 @@ export default function ConfirmedPage() {
               </div>
             </div>
           )}
-
-          {/* Event Details */}
-          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-            <h3 className="font-semibold text-lg text-slate-700 mb-4">活動詳情</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
-                <span className="text-slate-600">2025年12月17日（星期三）</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
-                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
-                <div className="text-slate-600">
-                  <div>16:30 歡迎酒會及工作坊</div>
-                  <div>18:30 晚宴正式開始</div>
-                  <div>21:00 晚宴結束</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* QR Code Section */}
           <div className="p-8 bg-white border-2 border-dashed border-green-300 rounded-lg">
