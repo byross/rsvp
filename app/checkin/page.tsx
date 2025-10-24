@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +28,20 @@ export default function CheckinPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [token, setToken] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleCheckIn = async () => {
-    if (!token.trim()) {
-      setError('請輸入 QR Code token');
+  // 自動聚焦到輸入框
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [guest]);
+
+  const handleCheckIn = async (tokenValue: string) => {
+    if (!tokenValue.trim() || isProcessing) {
       return;
     }
 
+    setIsProcessing(true);
     setError(null);
     setSuccess(null);
     
@@ -42,7 +49,7 @@ export default function CheckinPage() {
       // 調用簽到 API
       const response = await apiRequest('/api/scan', {
         method: 'POST',
-        body: JSON.stringify({ token: token.trim() }),
+        body: JSON.stringify({ token: tokenValue.trim() }),
       });
 
       const result = await response.json();
@@ -67,6 +74,24 @@ export default function CheckinPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '簽到失敗');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // 監聽輸入變化，當輸入完成時自動簽到
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setToken(value);
+    
+    // 當輸入長度達到預期長度時（假設 QR Code token 有固定長度）
+    // 或者可以監聽 Enter 鍵
+  };
+
+  // 監聽 Enter 鍵自動簽到
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && token.trim() && !isProcessing) {
+      handleCheckIn(token);
     }
   };
 
@@ -87,6 +112,10 @@ export default function CheckinPage() {
     setError(null);
     setSuccess(null);
     setToken('');
+    // 重新聚焦到輸入框
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   return (
@@ -104,7 +133,7 @@ export default function CheckinPage() {
           
           <CardTitle className="text-3xl text-center">簽到系統</CardTitle>
           <CardDescription className="text-center">
-            輸入嘉賓的 QR Code token 進行簽到
+            掃描嘉賓的 QR Code 自動完成簽到
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -112,26 +141,30 @@ export default function CheckinPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-2">
-                QR Code Token
+                QR Code Token（掃描後自動簽到）
               </label>
               <Input
+                ref={inputRef}
                 id="token"
                 type="text"
                 value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="請輸入 QR Code token"
-                className="w-full"
+                onChange={handleTokenChange}
+                onKeyPress={handleKeyPress}
+                placeholder="請掃描 QR Code 或輸入 token 後按 Enter"
+                className="w-full text-lg"
+                disabled={isProcessing}
+                autoFocus
               />
             </div>
-            <div className="flex justify-center">
-              <Button 
-                onClick={handleCheckIn}
-                disabled={!token.trim()}
-                className="px-8"
-              >
-                簽到
-              </Button>
-            </div>
+            {isProcessing && (
+              <div className="flex justify-center items-center space-x-2 text-blue-600">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>處理中...</span>
+              </div>
+            )}
           </div>
 
           {/* 嘉賓資訊顯示 */}

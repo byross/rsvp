@@ -384,48 +384,102 @@ export default function GuestsPage() {
     }
   };
 
-  // Parse QR code JSON
-  const handleQRInput = () => {
-    if (!qrInput.trim()) return;
 
-    try {
-      // Try to parse as JSON first
-      const qrData = JSON.parse(qrInput);
-      if (qrData.token) {
-        // Find guest by token
-        const guest = guests.find(g => g.token === qrData.token);
-        if (guest) {
-          setSelectedGuest(guest);
-          setCheckinStatus({type: null, message: ''});
-        } else {
-          setCheckinStatus({type: 'error', message: '找不到對應的客人'});
-        }
-      } else {
-        setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤：缺少 token'});
-      }
-    } catch (error) {
-      // If not JSON, assume it's just a token
-      const guest = guests.find(g => g.token === qrInput.trim());
-      if (guest) {
-        setSelectedGuest(guest);
-        setCheckinStatus({type: null, message: ''});
-      } else {
-        setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤或找不到客人'});
+  // Auto process QR input when content changes
+  const handleQRInputChange = async (value: string) => {
+    setQrInput(value);
+    
+    // Auto process if content looks like QR code (has token pattern or JSON)
+    if (value.trim()) {
+      console.log('QR Input detected:', value);
+      
+      // Check if it looks like a QR code
+      const isQRCode = (
+        value.includes('token_') || 
+        value.includes('"token"') || 
+        (value.includes('{') && value.includes('}'))
+      );
+      
+      if (isQRCode) {
+        console.log('QR Code detected, processing...');
+        // Small delay to allow for complete paste
+        setTimeout(() => {
+          console.log('Executing handleQRInput with value:', value);
+          processQRCode(value);
+        }, 300);
       }
     }
   };
 
-  // Check-in guest
-  const handleCheckin = async () => {
-    if (!selectedGuest) return;
+  // Process QR code with the actual value
+  const processQRCode = async (value: string) => {
+    console.log('processQRCode called with:', value);
+    if (!value.trim()) {
+      console.log('QR input is empty, returning');
+      return;
+    }
 
+    try {
+      let token = '';
+      
+      // Try to parse as JSON first
+      try {
+        const qrData = JSON.parse(value);
+        if (qrData.token) {
+          token = qrData.token;
+        } else {
+          setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤：缺少 token'});
+          return;
+        }
+      } catch (error) {
+        // If not JSON, assume it's just a token
+        token = value.trim();
+      }
+
+      console.log('Extracted token:', token);
+
+      // Find guest by token
+      const guest = guests.find(g => g.token === token);
+      if (!guest) {
+        console.log('Guest not found for token:', token);
+        setCheckinStatus({type: 'error', message: '找不到對應的客人'});
+        return;
+      }
+
+      console.log('Found guest:', guest.name);
+
+      // Set selected guest
+      setSelectedGuest(guest);
+      setCheckinStatus({type: null, message: ''});
+
+      // Auto check-in if not already checked in
+      if (guest.checked_in !== 1) {
+        console.log('Guest not checked in, performing check-in');
+        await performCheckin(guest);
+      } else {
+        console.log('Guest already checked in');
+        // Show that guest is already checked in
+        setCheckinStatus({type: 'success', message: `${guest.name} 已經簽到過了`});
+        // Auto clear after 3 seconds
+        setTimeout(() => {
+          resetCheckinForm();
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error processing QR code:', error);
+      setCheckinStatus({type: 'error', message: 'QR Code 格式錯誤或找不到客人'});
+    }
+  };
+
+  // Perform check-in
+  const performCheckin = async (guest: Guest) => {
     setCheckingIn(true);
     try {
-      const response = await apiPost('/api/scan', { token: selectedGuest.token });
+      const response = await apiPost('/api/scan', { token: guest.token });
       const data = await response.json();
 
       if (response.ok) {
-        setCheckinStatus({type: 'success', message: `${selectedGuest.name} 簽到成功！`});
+        setCheckinStatus({type: 'success', message: `${guest.name} 簽到成功！`});
         // Refresh guest list
         fetchGuests();
         // Clear form after 2 seconds
@@ -433,7 +487,11 @@ export default function GuestsPage() {
           resetCheckinForm();
         }, 2000);
       } else if (data.status === 'duplicate') {
-        setCheckinStatus({type: 'warning', message: `${selectedGuest.name} 已經簽到過了`});
+        setCheckinStatus({type: 'success', message: `${guest.name} 已經簽到過了`});
+        // Auto clear after 3 seconds
+        setTimeout(() => {
+          resetCheckinForm();
+        }, 3000);
       } else {
         setCheckinStatus({type: 'error', message: data.error || '簽到失敗'});
       }
@@ -443,6 +501,12 @@ export default function GuestsPage() {
     } finally {
       setCheckingIn(false);
     }
+  };
+
+  // Check-in guest
+  const handleCheckin = async () => {
+    if (!selectedGuest) return;
+    await performCheckin(selectedGuest);
   };
 
   // Reset check-in form
@@ -666,21 +730,27 @@ export default function GuestsPage() {
 
               {/* QR Code Method */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">方法二：QR Code</Label>
+                <Label className="text-base font-semibold">方法二：QR Code（一貼上就自動簽到）</Label>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="貼上 QR Code 內容..."
+                    placeholder="貼上 QR Code 內容立即自動簽到..."
                     value={qrInput}
-                    onChange={(e) => setQrInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleQRInput()}
+                    onChange={(e) => handleQRInputChange(e.target.value)}
                     className="flex-1 font-mono text-sm"
+                    disabled={checkingIn}
                   />
-                  <Button onClick={handleQRInput} variant="outline">
-                    解析
-                  </Button>
+                  {checkingIn && (
+                    <div className="flex items-center px-3 text-blue-600">
+                      <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      處理中...
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  範例：{`{"id":"xxx","token":"xxx","name":"xxx",...}`}
+                  範例：{`{"id":"xxx","token":"xxx","name":"xxx",...}`} 或直接貼上 token
                 </p>
               </div>
             </div>

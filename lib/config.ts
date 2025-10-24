@@ -9,7 +9,12 @@ export const getApiUrl = (): string => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (!apiUrl) {
-    // 這應該永遠不會發生，因為 next.config.ts 有 fallback
+    // 在開發環境中使用默認值
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ NEXT_PUBLIC_API_URL is not set, using default: http://localhost:8787');
+      return 'http://localhost:8787';
+    }
+    // 生產環境中拋出錯誤
     console.error('❌ CRITICAL: NEXT_PUBLIC_API_URL is not set!');
     throw new Error('API URL is not configured');
   }
