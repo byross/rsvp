@@ -75,3 +75,38 @@ export interface WorkshopAvailabilityResponse {
   };
 }
 
+export interface WorkshopCheckinGuest {
+  id: string;
+  checked_in_at: string;
+  name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  invite_type: 'named' | 'company';
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
+}
+
+export interface WorkshopCheckinsResponse {
+  workshop_type: string;
+  workshop_time: string;
+  checkins: WorkshopCheckinGuest[];
+}
+
+export interface WorkshopGuest {
+  id: string;
+  name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  invite_type: 'named' | 'company';
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
+  checked_in: number; // 0 or 1
+  checked_in_at?: string;
+}
+
+export interface WorkshopGuestsResponse {
+  workshop_type: string;
+  workshop_time: string;
+  guests: WorkshopGuest[];
+}
+

@@ -42,6 +42,8 @@ export const API_ENDPOINTS = {
   WORKSHOP_LEATHER_CHECKIN: '/api/workshop/leather/checkin',
   WORKSHOP_PERFUME_CHECKIN: '/api/workshop/perfume/checkin',
   WORKSHOP_AVAILABILITY: '/api/workshop/availability',
+  WORKSHOP_CHECKINS: (type: string, time: string) => `/api/workshop/${type}/${time}/checkins`,
+  WORKSHOP_GUESTS: (type: string, time: string) => `/api/workshop/${type}/${time}/guests`,
 } as const;
 
 /**

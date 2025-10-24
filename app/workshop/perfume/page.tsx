@@ -1,40 +1,147 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest, API_ENDPOINTS } from "@/lib/config";
 
 interface Guest {
   id: string;
   name: string;
-  email: string;
   company?: string;
+  email: string;
   phone?: string;
   invite_type: 'named' | 'company';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
-  dinner: boolean;
-  cocktail: boolean;
-  vegetarian?: boolean;
-  workshop_type?: string;
+  workshop_type?: 'leather' | 'perfume';
   workshop_time?: string;
-  checked_in: boolean;
+}
+
+interface WorkshopCheckinGuest {
+  id: string;
+  checked_in_at: string;
+  name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  invite_type: 'named' | 'company';
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
+}
+
+interface WorkshopCheckinsResponse {
+  workshop_type: string;
+  workshop_time: string;
+  checkins: WorkshopCheckinGuest[];
+}
+
+interface WorkshopGuest {
+  id: string;
+  name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  invite_type: 'named' | 'company';
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
+  checked_in: number; // 0 or 1
+  checked_in_at?: string;
+}
+
+interface WorkshopGuestsResponse {
+  workshop_type: string;
+  workshop_time: string;
+  guests: WorkshopGuest[];
 }
 
 export default function PerfumeWorkshopCheckinPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [token, setToken] = useState('');
   const [guest, setGuest] = useState<Guest | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [token, setToken] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [checkins, setCheckins] = useState<{[key: string]: WorkshopCheckinGuest[]}>({});
+  const [guests, setGuests] = useState<{[key: string]: WorkshopGuest[]}>({});
+  const [loadingCheckins, setLoadingCheckins] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const times = ['1630', '1700', '1730', '1800'];
+  
+  // 從 URL 參數獲取默認時段，如果沒有則使用第一個時段
+  const getDefaultTime = () => {
+    const p = searchParams.get('p');
+    if (p) {
+      const index = parseInt(p) - 1;
+      if (index >= 0 && index < times.length) {
+        return times[index];
+      }
+    }
+    return times[0];
+  };
+  
+  const [activeTime, setActiveTime] = useState(getDefaultTime());
+
+  // 處理 Tab 切換，同時更新 URL
+  const handleTabChange = (value: string) => {
+    setActiveTime(value);
+    const index = times.indexOf(value) + 1;
+    router.push(`/workshop/perfume?p=${index}`);
+  };
 
   // 自動聚焦到輸入框
   useEffect(() => {
     inputRef.current?.focus();
   }, [guest]);
+
+  // 載入所有時段的嘉賓列表和簽到列表（只在需要時調用）
+  const loadCheckins = useCallback(async () => {
+    setLoadingCheckins(true);
+    const newCheckins: {[key: string]: WorkshopCheckinGuest[]} = {};
+    const newGuests: {[key: string]: WorkshopGuest[]} = {};
+    
+    try {
+      for (const time of times) {
+        // 載入嘉賓列表（選擇了該時段的所有嘉賓）
+        const guestsResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_GUESTS('perfume', time), {
+          method: 'GET',
+        });
+        
+        if (guestsResponse.ok) {
+          const guestsData: WorkshopGuestsResponse = await guestsResponse.json();
+          newGuests[time] = guestsData.guests;
+        } else {
+          newGuests[time] = [];
+        }
+
+        // 載入簽到列表（已經簽到的嘉賓）
+        const checkinsResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_CHECKINS('perfume', time), {
+          method: 'GET',
+        });
+        
+        if (checkinsResponse.ok) {
+          const checkinsData: WorkshopCheckinsResponse = await checkinsResponse.json();
+          newCheckins[time] = checkinsData.checkins;
+        } else {
+          newCheckins[time] = [];
+        }
+      }
+      setGuests(newGuests);
+      setCheckins(newCheckins);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoadingCheckins(false);
+    }
+  }, []);
+
+  // 頁面載入時獲取簽到列表（只執行一次）
+  useEffect(() => {
+    loadCheckins();
+  }, []);
 
   const handleCheckIn = async (tokenValue: string) => {
     if (!tokenValue.trim() || isProcessing) {
@@ -59,6 +166,9 @@ export default function PerfumeWorkshopCheckinPage() {
           setGuest(result.guest);
           setSuccess('調香工作坊簽到成功！');
           
+          // 重新載入簽到列表
+          loadCheckins();
+          
           // 顯示工作坊券提示
           setTimeout(() => {
             setSuccess(`調香工作坊簽到成功！請發放：調香工作坊券 - ${getWorkshopTime(result.guest.workshop_time)}`);
@@ -70,7 +180,14 @@ export default function PerfumeWorkshopCheckinPage() {
       } else {
         if (result.error === '該嘉賓未選擇調香工作坊') {
           setGuest(result.guest);
-          setError('該嘉賓未選擇調香工作坊');
+          const guestWorkshop = result.guest?.workshop_type;
+          if (guestWorkshop === 'leather') {
+            setError('❌ 該嘉賓選擇了皮革工作坊，請前往皮革工作坊簽到');
+          } else if (!guestWorkshop) {
+            setError('❌ 該嘉賓未選擇任何工作坊');
+          } else {
+            setError('❌ 該嘉賓未選擇調香工作坊');
+          }
         } else {
           setError(result.error || '簽到失敗');
         }
@@ -82,15 +199,31 @@ export default function PerfumeWorkshopCheckinPage() {
     }
   };
 
-  // 監聽輸入變化，當輸入完成時自動簽到
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setToken(value);
+    
+    // 自動檢測 QR Code 掃描
+    // 檢查是否為 JSON 格式（QR Code 掃描器會輸入完整的 JSON 對象）
+    if (value && value.startsWith('{') && value.includes('"token"') && !isProcessing) {
+      try {
+        const qrData = JSON.parse(value);
+        if (qrData.token && qrData.token.startsWith('token_')) {
+          // 從 JSON 中提取 token 並立即觸發簽到
+          handleCheckIn(qrData.token);
+        }
+      } catch (error) {
+        // 如果解析失敗，不做任何事情
+      }
+    }
+    // 如果是純 token 字符串（向後兼容）
+    else if (value && value.startsWith('token_') && value.length >= 16 && !isProcessing) {
+      handleCheckIn(value);
+    }
   };
 
-  // 監聽 Enter 鍵自動簽到
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && token.trim() && !isProcessing) {
+    if (e.key === 'Enter') {
       handleCheckIn(token);
     }
   };
@@ -111,8 +244,8 @@ export default function PerfumeWorkshopCheckinPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <Card className="w-full max-w-4xl">
+    <main className="flex min-h-screen flex-col items-center justify-start p-8 pt-16">
+      <Card className="w-full max-w-6xl">
         <CardHeader className="space-y-4">
           {/* Logo */}
           <div className="w-full mb-4">
@@ -212,53 +345,30 @@ export default function PerfumeWorkshopCheckinPage() {
 
               {/* 工作坊券提示 */}
               {guest.rsvp_status === 'confirmed' && guest.workshop_type === 'perfume' && guest.workshop_time && (
-                <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+                <div className="mt-4 p-4 bg-purple-100 border border-purple-400 rounded-lg">
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    <p className="text-yellow-800 font-medium">
+                    <p className="text-purple-800 font-medium">
                       請發放：調香工作坊券 - {getWorkshopTime(guest.workshop_time)}
                     </p>
                   </div>
                 </div>
               )}
-
-              {guest.rsvp_status === 'confirmed' && guest.workshop_type !== 'perfume' && (
-                <div className="mt-4 p-4 bg-red-100 border border-red-400 rounded-lg">
-                  <div className="flex items-center">
-                    <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-red-800 font-medium">
-                      該嘉賓未選擇調香工作坊
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* 狀態訊息 */}
+          {/* 錯誤和成功訊息 */}
           {error && (
-            <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {error}
-              </div>
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-center font-medium">{error}</p>
             </div>
           )}
-
+          
           {success && (
-            <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {success}
-              </div>
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-600 text-center font-medium">{success}</p>
             </div>
           )}
 
@@ -270,9 +380,108 @@ export default function PerfumeWorkshopCheckinPage() {
                 variant="outline"
                 className="px-6"
               >
-                掃描下一位
+                繼續簽到
               </Button>
             )}
+          </div>
+
+          {/* 簽到列表 */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">簽到列表</h3>
+              <Button 
+                onClick={loadCheckins}
+                disabled={loadingCheckins}
+                variant="outline"
+                size="sm"
+              >
+                {loadingCheckins ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    載入中...
+                  </>
+                ) : (
+                  '刷新'
+                )}
+              </Button>
+            </div>
+
+            <Tabs value={activeTime} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                {times.map((time, index) => (
+                  <TabsTrigger key={time} value={time}>
+                    {time.slice(0, 2)}:{time.slice(2)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {times.map((time) => (
+                <TabsContent key={time} value={time} className="space-y-4">
+                  <div className="flex items-center justify-end space-x-2">
+                    <Badge variant="outline">
+                      總人數: {guests[time]?.length || 0} 人
+                    </Badge>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      已簽到: {guests[time]?.filter(g => g.checked_in).length || 0} 人
+                    </Badge>
+                  </div>
+                  
+                  {guests[time] && guests[time].length > 0 ? (
+                    <div className="space-y-2">
+                      {guests[time].map((guest, index) => (
+                        <div key={guest.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                          guest.checked_in ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                        }`}>
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                              guest.checked_in 
+                                ? 'bg-green-100 text-green-600' 
+                                : 'bg-purple-100 text-purple-600'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className={`font-medium ${guest.checked_in ? 'text-green-800' : 'text-gray-800'}`}>
+                                {guest.name}
+                              </p>
+                              {guest.company && (
+                                <p className="text-sm text-gray-600">{guest.company}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {guest.checked_in ? (
+                              <div>
+                                <Badge className="bg-green-100 text-green-700 border-green-200">
+                                  已簽到
+                                </Badge>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {guest.checked_in_at && new Date(guest.checked_in_at).toLocaleTimeString('zh-HK', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500">
+                                未簽到
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      該時段暫無嘉賓報名
+                    </div>
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
           </div>
         </CardContent>
       </Card>

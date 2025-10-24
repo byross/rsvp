@@ -122,7 +122,7 @@ export default function AdminPage() {
           </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Link href="/admin/guests">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-500">
               <CardContent className="pt-6">
@@ -131,8 +131,8 @@ export default function AdminPage() {
                     <List className="w-8 h-8 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">嘉賓列表</h3>
-                    <p className="text-sm text-muted-foreground">查看和管理所有嘉賓</p>
+                    <h3 className="font-semibold text-base">嘉賓列表</h3>
+                    <p className="text-xs text-muted-foreground">查看和管理所有嘉賓</p>
                   </div>
                 </div>
               </CardContent>
@@ -147,8 +147,40 @@ export default function AdminPage() {
                     <Upload className="w-8 h-8 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">CSV 導入</h3>
-                    <p className="text-sm text-muted-foreground">批量導入嘉賓名單</p>
+                    <h3 className="font-semibold text-base">CSV 導入</h3>
+                    <p className="text-xs text-muted-foreground">批量導入嘉賓名單</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/workshop/leather">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-amber-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-amber-100 rounded-lg">
+                    <CheckCircle className="w-8 h-8 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base">皮革工作坊簽到</h3>
+                    <p className="text-xs text-muted-foreground">掃描 QR Code 完成簽到</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/workshop/perfume">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-purple-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <CheckCircle className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base">調香工作坊簽到</h3>
+                    <p className="text-xs text-muted-foreground">掃描 QR Code 完成簽到</p>
                   </div>
                 </div>
               </CardContent>
@@ -162,8 +194,8 @@ export default function AdminPage() {
                   <Mail className="w-8 h-8 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">發送邀請</h3>
-                  <p className="text-sm text-muted-foreground">批量發送邀請郵件</p>
+                  <h3 className="font-semibold text-base">發送邀請</h3>
+                  <p className="text-xs text-muted-foreground">批量發送邀請郵件</p>
                 </div>
               </div>
             </CardContent>

@@ -1704,6 +1704,147 @@ app.get('/api/admin/preview-confirmation/:id', async (c) => {
   }
 });
 
+// ===== Workshop APIs =====
+
+// Workshop availability
+app.get('/api/workshop/availability', async (c) => {
+  try {
+    const times = ['1630', '1700', '1730', '1800'];
+    const workshopTypes = ['leather', 'perfume'];
+    const capacityLimits = {
+      leather: 30,
+      perfume: 40
+    };
+
+    const availability: any = {
+      leather: {},
+      perfume: {}
+    };
+
+    for (const workshopType of workshopTypes) {
+      for (const time of times) {
+        const result = await c.env.DB
+          .prepare(`
+            SELECT COUNT(*) as count
+            FROM guests
+            WHERE workshop_type = ?
+              AND workshop_time = ?
+              AND rsvp_status = 'confirmed'
+          `)
+          .bind(workshopType, time)
+          .first();
+
+        const booked = (result as any)?.count || 0;
+        const total = capacityLimits[workshopType as keyof typeof capacityLimits];
+        const available = Math.max(0, total - booked);
+
+        availability[workshopType][time] = {
+          total,
+          booked,
+          available
+        };
+      }
+    }
+
+    return c.json(availability);
+  } catch (error) {
+    console.error('Workshop availability error:', error);
+    return c.json({ error: 'Failed to get workshop availability' }, 500);
+  }
+});
+
+// Get workshop check-ins by time slot
+app.get('/api/workshop/:type/:time/checkins', async (c) => {
+  const workshopType = c.req.param('type');
+  const workshopTime = c.req.param('time');
+
+  if (!['leather', 'perfume'].includes(workshopType)) {
+    return c.json({ error: 'Invalid workshop type' }, 400);
+  }
+
+  if (!['1630', '1700', '1730', '1800'].includes(workshopTime)) {
+    return c.json({ error: 'Invalid workshop time' }, 400);
+  }
+
+  try {
+    const checkins = await c.env.DB
+      .prepare(`
+        SELECT 
+          wc.id,
+          wc.checked_in_at,
+          g.name,
+          g.company,
+          g.email,
+          g.phone,
+          g.invite_type,
+          g.rsvp_status
+        FROM workshop_checkins wc
+        JOIN guests g ON wc.guest_id = g.id
+        WHERE wc.workshop_type = ? AND wc.workshop_time = ?
+        ORDER BY wc.checked_in_at ASC
+      `)
+      .bind(workshopType, workshopTime)
+      .all();
+
+    return c.json({
+      workshop_type: workshopType,
+      workshop_time: workshopTime,
+      checkins: checkins.results || []
+    });
+  } catch (error) {
+    console.error('Get workshop checkins error:', error);
+    return c.json({ error: 'Failed to get workshop check-ins' }, 500);
+  }
+});
+
+// Get guests who selected specific workshop time slot
+app.get('/api/workshop/:type/:time/guests', async (c) => {
+  const workshopType = c.req.param('type');
+  const workshopTime = c.req.param('time');
+
+  if (!['leather', 'perfume'].includes(workshopType)) {
+    return c.json({ error: 'Invalid workshop type' }, 400);
+  }
+
+  if (!['1630', '1700', '1730', '1800'].includes(workshopTime)) {
+    return c.json({ error: 'Invalid workshop time' }, 400);
+  }
+
+  try {
+    // Get all guests who selected this workshop time slot
+    const guests = await c.env.DB
+      .prepare(`
+        SELECT 
+          g.id,
+          g.name,
+          g.company,
+          g.email,
+          g.phone,
+          g.invite_type,
+          g.rsvp_status,
+          CASE WHEN wc.id IS NOT NULL THEN 1 ELSE 0 END as checked_in,
+          wc.checked_in_at
+        FROM guests g
+        LEFT JOIN workshop_checkins wc ON g.id = wc.guest_id AND wc.workshop_type = ? AND wc.workshop_time = ?
+        WHERE g.workshop_type = ? 
+          AND g.workshop_time = ? 
+          AND g.rsvp_status = 'confirmed'
+        ORDER BY g.name ASC
+      `)
+      .bind(workshopType, workshopTime, workshopType, workshopTime)
+      .all();
+
+    return c.json({
+      workshop_type: workshopType,
+      workshop_time: workshopTime,
+      guests: guests.results || []
+    });
+  } catch (error) {
+    console.error('Get workshop guests error:', error);
+    return c.json({ error: 'Failed to get workshop guests' }, 500);
+  }
+});
+
 // Export for Cloudflare Workers
 export default app;
 
