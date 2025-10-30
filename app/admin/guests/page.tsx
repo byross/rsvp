@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,9 @@ export default function GuestsPage() {
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkinStatus, setCheckinStatus] = useState<{type: 'success' | 'error' | 'warning' | null, message: string}>({type: null, message: ''});
+  const [autoFocusQR, setAutoFocusQR] = useState(false);
+  const qrInputRef = useRef<HTMLInputElement>(null);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Email preview related states
   const [previewType, setPreviewType] = useState<'invitation' | 'confirmation' | null>(null);
@@ -456,10 +459,20 @@ export default function GuestsPage() {
       if (guest.checked_in !== 1) {
         console.log('Guest not checked in, performing check-in');
         await performCheckin(guest);
+        if (autoFocusQR) {
+          setTimeout(() => {
+            qrInputRef.current?.focus();
+          }, 50);
+        }
       } else {
         console.log('Guest already checked in');
         // Show that guest is already checked in
         setCheckinStatus({type: 'success', message: `${guest.name} 已經簽到過了`});
+        if (autoFocusQR) {
+          setTimeout(() => {
+            qrInputRef.current?.focus();
+          }, 50);
+        }
         // Auto clear after 3 seconds
         setTimeout(() => {
           resetCheckinForm();
@@ -500,6 +513,11 @@ export default function GuestsPage() {
       setCheckinStatus({type: 'error', message: '簽到失敗，請重試'});
     } finally {
       setCheckingIn(false);
+      if (autoFocusQR) {
+        setTimeout(() => {
+          qrInputRef.current?.focus();
+        }, 50);
+      }
     }
   };
 
@@ -516,6 +534,11 @@ export default function GuestsPage() {
     setSearchResults([]);
     setSelectedGuest(null);
     setCheckinStatus({type: null, message: ''});
+    if (autoFocusQR) {
+      setTimeout(() => {
+        qrInputRef.current?.focus();
+      }, 50);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -730,12 +753,32 @@ export default function GuestsPage() {
 
               {/* QR Code Method */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">方法二：QR Code（一貼上就自動簽到）</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">方法二：QR Code（一貼上就自動簽到）</Label>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="auto-focus-qr" checked={autoFocusQR} onCheckedChange={(v) => setAutoFocusQR(!!v)} />
+                    <Label htmlFor="auto-focus-qr" className="text-sm text-slate-700">簽到後自動回到 QR 輸入</Label>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <Input
                     placeholder="貼上 QR Code 內容立即自動簽到..."
+                    ref={qrInputRef}
                     value={qrInput}
                     onChange={(e) => handleQRInputChange(e.target.value)}
+                    onBlur={() => {
+                      if (!autoFocusQR) return;
+                      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                      blurTimerRef.current = setTimeout(() => {
+                        qrInputRef.current?.focus();
+                      }, 2000);
+                    }}
+                    onFocus={() => {
+                      if (blurTimerRef.current) {
+                        clearTimeout(blurTimerRef.current);
+                        blurTimerRef.current = null;
+                      }
+                    }}
                     className="flex-1 font-mono text-sm"
                     disabled={checkingIn}
                   />
