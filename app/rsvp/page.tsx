@@ -284,7 +284,7 @@ function RSVPContent() {
                 <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
                 {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
                 {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '香水工作坊'}（{timeText}）</li>}
-                <li>如需修改資料，請聯絡活動負責人</li>
+                <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
               </ul>
             </div>
             <div className="bg-green-50 p-4 border border-green-200 rounded-lg">
