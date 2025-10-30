@@ -316,6 +316,7 @@ function RSVPContent() {
               <div className="flex items-start">
                 <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
                 <div className="text-slate-600">
+                  <div>16:15 接待處開放</div>
                   <div>16:30 歡迎酒會及工作坊</div>
                   <div>18:30 晚宴正式開始</div>
                   <div>21:00 晚宴結束</div>

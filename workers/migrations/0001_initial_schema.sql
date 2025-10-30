@@ -34,3 +34,5 @@ CREATE INDEX IF NOT EXISTS idx_guests_rsvp_status ON guests(rsvp_status);
 CREATE INDEX IF NOT EXISTS idx_scan_logs_guest_id ON scan_logs(guest_id);
 CREATE INDEX IF NOT EXISTS idx_scan_logs_scan_time ON scan_logs(scan_time);
 
+
+

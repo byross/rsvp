@@ -197,3 +197,5 @@ vars = { ALLOWED_ORIGIN = "https://your-domain.com" }
 - [ ] 添加 rate limiting
 - [ ] 完善錯誤處理
 
+
+

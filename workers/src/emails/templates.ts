@@ -130,9 +130,9 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
       <img src="https://rsvp.momini.app/images/logo.jpeg" alt="${data.eventName}" style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 12px 12px 0 0;" />
     </div>
     <div class="content">
-      <p class="greeting">親愛的 <strong>${data.guestName}</strong>，</p>
+      <p class="greeting">尊敬的 <strong>${data.guestName}</strong>，</p>
       <p class="message">
-        誠摯邀請您出席我們的特別活動！這將是一個充滿歡樂與回憶的夜晚，我們期待與您共度美好時光。
+        為興祝天網(NetCraft)成立三十週年，我們誠邀您出席慶典晚宴 ，與我們一同回共慶顧光輝歷程。
       </p>
       
       <div class="event-details">
@@ -501,7 +501,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
           ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
           ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
-          <li>如需修改資料，請聯絡活動負責人</li>
+          <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
         </ul>
       </div>
 

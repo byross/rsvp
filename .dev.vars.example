@@ -38,3 +38,5 @@ ADMIN_PASSWORD=your_secure_password
 # 2. 生產環境用 wrangler secret 命令設置
 # 3. 不要在任何 commit 的文件中暴露敏感資料
 # ========================================
+
+

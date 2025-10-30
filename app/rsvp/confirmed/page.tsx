@@ -76,6 +76,7 @@ export default function ConfirmedPage() {
               <div className="flex items-start">
                 <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
                 <div className="text-slate-600">
+                <div>16:15 接待處開放</div>
                   <div>16:30 歡迎酒會及工作坊</div>
                   <div>18:30 晚宴正式開始</div>
                   <div>21:00 晚宴結束</div>
@@ -169,7 +170,7 @@ export default function ConfirmedPage() {
             <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
               <li>請保存確認郵件中的 QR Code</li>
               <li>活動當日請出示 QR Code 以便簽到</li>
-              <li>如需修改資料，請聯絡活動負責人</li>
+              <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
             </ul>
           </div>
 
@@ -178,3 +179,4 @@ export default function ConfirmedPage() {
     </main>
   );
 }
+
