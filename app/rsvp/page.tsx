@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { apiRequest, API_ENDPOINTS } from '@/lib/config';
+import { apiRequest, API_ENDPOINTS, getApiUrl } from '@/lib/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,13 @@ interface Guest {
   company: string | null;
   email: string;
   invite_type: InviteType;
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
+  dinner?: number;
+  cocktail?: number;
+  vegetarian?: number;
+  workshop_type?: 'leather' | 'perfume' | null;
+  workshop_time?: string | null;
+  guest_category?: 'netcraft' | 'vip' | 'regular';
 }
 
 interface FormData {
@@ -56,6 +63,7 @@ function RSVPContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [guest, setGuest] = useState<Guest | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [workshopAvailability, setWorkshopAvailability] = useState<WorkshopAvailabilityResponse | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -92,6 +100,7 @@ function RSVPContent() {
 
         const guestData = await guestResponse.json();
         setGuest(guestData.guest);
+        setIsConfirmed(guestData.guest.rsvp_status === 'confirmed');
         
         // Pre-fill name for named guests (情況一)
         if (guestData.guest.invite_type === 'named') {
@@ -99,6 +108,21 @@ function RSVPContent() {
             ...prev,
             name: guestData.guest.name,
             company: guestData.guest.company || '',
+          }));
+        }
+
+        // 如果已確認，將已提交資料帶入唯讀顯示
+        if (guestData.guest.rsvp_status === 'confirmed') {
+          setFormData(prev => ({
+            ...prev,
+            name: guestData.guest.name,
+            company: guestData.guest.company || '',
+            dinner: (guestData.guest.dinner ?? 1) === 1,
+            cocktail: (guestData.guest.cocktail ?? 0) === 1,
+            vegetarian: (guestData.guest.vegetarian ?? 0) === 1,
+            workshop: !!guestData.guest.workshop_type,
+            workshop_type: guestData.guest.workshop_type || '',
+            workshop_time: guestData.guest.workshop_time || '',
           }));
         }
 
@@ -212,6 +236,43 @@ function RSVPContent() {
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-6">
             <p className="text-center text-destructive">{error}</p>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  if (isConfirmed && guest) {
+    const apiBase = getApiUrl();
+    const qrUrl = `${apiBase}/qr/qr-${guest.id}.png`;
+    const timeText = guest.workshop_time ? `${guest.workshop_time.slice(0,2)}:${guest.workshop_time.slice(2)}` : '';
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100">
+        <Card className="w-full max-w-2xl shadow-lg">
+          <CardHeader className="space-y-4">
+            <div className="w-full mb-4">
+              <img src="/images/logo.jpeg" alt="活動 Logo" className="w-full h-auto object-cover rounded-lg" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-center">您的回覆已確認</CardTitle>
+            <CardDescription className="text-center">以下為您的出席資訊與 QR Code，請於現場出示</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="p-4 rounded-lg bg-slate-50 border">
+              <div className="space-y-2">
+                <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
+                {guest.company && (
+                  <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">雞尾酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '香水'} ${timeText}` : '未選擇'}</span></div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border" />
+              <p className="text-sm text-slate-500">請保存此 QR Code 並於入場與工作坊簽到時出示</p>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -473,3 +534,4 @@ export default function RSVPPage() {
     </Suspense>
   );
 }
+
