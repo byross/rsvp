@@ -513,6 +513,7 @@ app.post('/api/rsvp/:token', async (c) => {
         eventName: c.env.EVENT_NAME,
         eventDate: c.env.EVENT_DATE,
         eventVenue: c.env.EVENT_VENUE,
+        rsvpUrl: `${c.env.FRONTEND_URL}/rsvp?token=${token}`,
       }
     );
 
@@ -1438,6 +1439,7 @@ app.post('/api/test-email', async (c) => {
           eventName: c.env.EVENT_NAME,
           eventDate: c.env.EVENT_DATE,
           eventVenue: c.env.EVENT_VENUE,
+          rsvpUrl: `${c.env.FRONTEND_URL}/rsvp?token=test-token-001`,
         }
       );
 
@@ -1600,6 +1602,7 @@ app.post('/api/admin/send-confirmation/:id', requireSimpleAuth, async (c) => {
         eventName: c.env.EVENT_NAME,
         eventDate: c.env.EVENT_DATE,
         eventVenue: c.env.EVENT_VENUE,
+        rsvpUrl: `${c.env.FRONTEND_URL}/rsvp?token=${guest.token}`,
       }
     );
 

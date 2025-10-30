@@ -22,6 +22,7 @@ interface ConfirmationEmailData {
   eventName: string;
   eventDate: string;
   eventVenue: string;
+  rsvpUrl: string;
 }
 
 /**
@@ -491,6 +492,10 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         <img src="${data.qrCodeDataURL}" alt="QR Code" />
         <p><strong>請保存此 QR Code</strong></p>
         <p>活動當日請出示此 QR Code 以便簽到</p>
+        <p style="margin-top: 8px;">
+          如無法顯示 QR Code，請
+          <a href="${data.rsvpUrl}" style="color: #10b981; text-decoration: underline;">點擊查看</a>
+        </p>
       </div>
 
       <div class="important-notice">

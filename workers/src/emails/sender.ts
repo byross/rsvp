@@ -36,6 +36,7 @@ interface SendConfirmationEmailParams {
   eventName: string;
   eventDate: string;
   eventVenue: string;
+  rsvpUrl: string;
 }
 
 /**
@@ -114,6 +115,7 @@ export async function sendConfirmationEmail(
       eventName: params.eventName,
       eventDate: params.eventDate,
       eventVenue: params.eventVenue,
+      rsvpUrl: params.rsvpUrl,
     });
 
     // Use Fetch API instead of Resend SDK for better Cloudflare Workers compatibility
