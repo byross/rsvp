@@ -27,8 +27,8 @@ preview_bucket_name = "rsvp-qr-codes-preview"
 RESEND_FROM_EMAIL = "celebrate30@netcraft.com.mo"
 RESEND_FROM_NAME = "NetCraft Gala Dinner 邀請系統"
 EVENT_NAME = "天網(NetCraft)三十週年晚宴"
-EVENT_DATE = "2025-10-15"
-EVENT_VENUE = "活動場地"
+EVENT_DATE = "2025年12月17日（星期三）"
+EVENT_VENUE = "澳門銀河國際會議中心地下宴會廳"
 # R2 Worker URL (QR codes will be served through Worker)
 R2_PUBLIC_URL = "https://rsvp-api.byross-tech.workers.dev"
 # CORS settings for Next.js frontend

@@ -254,11 +254,12 @@ function RSVPContent() {
             <div className="w-full mb-4">
               <img src="/images/logo.jpeg" alt="活動 Logo" className="w-full h-auto object-cover rounded-lg" />
             </div>
-            <CardTitle className="text-3xl font-bold text-center">您的回覆已確認</CardTitle>
-            <CardDescription className="text-center">以下為您的出席資訊與 QR Code，請於現場出示</CardDescription>
+            <CardTitle className="text-3xl font-bold text-center">✓ RSVP 確認成功！</CardTitle>
+            <CardDescription className="text-center">感謝您的確認！以下是您的出席資料摘要：</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-4 rounded-lg bg-slate-50 border">
+              <h3 className="font-semibold text-slate-800 mb-2">您的確認資料</h3>
               <div className="space-y-2">
                 <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
                 {guest.company && (
@@ -272,7 +273,36 @@ function RSVPContent() {
             </div>
             <div className="flex flex-col items-center gap-3">
               <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
-              <p className="text-sm text-slate-500">請保存此 QR Code 並於入場與工作坊簽到時出示</p>
+              <p className="text-sm text-slate-500">請保存此 QR Code</p>
+              <p className="text-sm text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
+            </div>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <h4 className="font-semibold text-amber-900 mb-2">重要提示</h4>
+              <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                <li>請妥善保存此郵件及 QR Code</li>
+                <li>活動當日請提早 15 分鐘到達</li>
+                <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
+                {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
+                {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '香水工作坊'}（{timeText}）</li>}
+                <li>如需修改資料，請聯絡活動負責人</li>
+              </ul>
+            </div>
+            <div className="bg-green-50 p-4 border border-green-200 rounded-lg">
+              <h4 className="font-semibold text-green-800 mb-2">活動詳情</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start">
+                  <span className="text-slate-700 min-w-[68px]">活動名稱：</span>
+                  <span className="text-slate-700">天網(NetCraft)三十週年晚宴</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-slate-700 min-w-[68px]">日期時間：</span>
+                  <span className="text-slate-700">2025年12月17日（星期三）</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-slate-700 min-w-[68px]">活動地點：</span>
+                  <span className="text-slate-700">澳門銀河國際會議中心地下宴會廳</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
