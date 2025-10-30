@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { generateQRCodeData } from './qr-generator';
+import { generateQRCodeData, parseAndValidateQRCode } from './qr-generator';
 import { generateAndSaveQRCode } from './qr-storage';
 import { sendConfirmationEmail, sendInvitationEmail } from './emails/sender';
 import { 
@@ -583,13 +583,22 @@ app.get('/api/workshop/availability', async (c) => {
 // Workshop check-in endpoints
 app.post('/api/workshop/leather/checkin', async (c) => {
   const body = await c.req.json();
-  const { token } = body;
+  let { token } = body as { token: string };
 
   if (!token) {
     return c.json({ error: 'Token is required' }, 400);
   }
 
   try {
+    // 支援傳入完整 QR JSON：驗證 checksum 後抽取 token
+    if (token.startsWith('{') && token.includes('"checksum"')) {
+      const validation = await parseAndValidateQRCode(token, c.env.QR_SECRET);
+      if (!validation.valid || !validation.payload) {
+        return c.json({ error: 'Invalid QR code' }, 400);
+      }
+      token = validation.payload.token;
+    }
+
     // Get guest data
     const guest = await c.env.DB
       .prepare('SELECT * FROM guests WHERE token = ?')
@@ -658,13 +667,22 @@ app.post('/api/workshop/leather/checkin', async (c) => {
 
 app.post('/api/workshop/perfume/checkin', async (c) => {
   const body = await c.req.json();
-  const { token } = body;
+  let { token } = body as { token: string };
 
   if (!token) {
     return c.json({ error: 'Token is required' }, 400);
   }
 
   try {
+    // 支援傳入完整 QR JSON：驗證 checksum 後抽取 token
+    if (token.startsWith('{') && token.includes('"checksum"')) {
+      const validation = await parseAndValidateQRCode(token, c.env.QR_SECRET);
+      if (!validation.valid || !validation.payload) {
+        return c.json({ error: 'Invalid QR code' }, 400);
+      }
+      token = validation.payload.token;
+    }
+
     // Get guest data
     const guest = await c.env.DB
       .prepare('SELECT * FROM guests WHERE token = ?')
@@ -1464,9 +1482,18 @@ app.get('/qr/:filename', async (c) => {
 // Check-in scan
 app.post('/api/scan', async (c) => {
   const body = await c.req.json();
-  const { token } = body;
+  let { token } = body as { token: string };
 
   try {
+    // 支援傳入完整 QR JSON：驗證 checksum 後抽取 token
+    if (token && token.startsWith('{') && token.includes('"checksum"')) {
+      const validation = await parseAndValidateQRCode(token, c.env.QR_SECRET);
+      if (!validation.valid || !validation.payload) {
+        return c.json({ error: 'Invalid QR code' }, 400);
+      }
+      token = validation.payload.token;
+    }
+
     // Get guest by token
     const guest = await c.env.DB
       .prepare('SELECT * FROM guests WHERE token = ?')
@@ -1847,4 +1874,6 @@ app.get('/api/workshop/:type/:time/guests', async (c) => {
 
 // Export for Cloudflare Workers
 export default app;
+
+
 

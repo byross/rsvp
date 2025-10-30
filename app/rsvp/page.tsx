@@ -246,6 +246,7 @@ function RSVPContent() {
     const apiBase = getApiUrl();
     const qrUrl = `${apiBase}/qr/qr-${guest.id}.png`;
     const timeText = guest.workshop_time ? `${guest.workshop_time.slice(0,2)}:${guest.workshop_time.slice(2)}` : '';
+    const borderColor = guest.guest_category === 'vip' ? '#d97706' : guest.guest_category === 'regular' ? '#16a34a' : '#0A599C';
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100">
         <Card className="w-full max-w-2xl shadow-lg">
@@ -270,7 +271,7 @@ function RSVPContent() {
               </div>
             </div>
             <div className="flex flex-col items-center gap-3">
-              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border" />
+              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
               <p className="text-sm text-slate-500">請保存此 QR Code 並於入場與工作坊簽到時出示</p>
             </div>
           </CardContent>
