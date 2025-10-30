@@ -164,6 +164,11 @@ function LeatherWorkshopCheckinContent() {
       setError(err instanceof Error ? err.message : '簽到失敗');
     } finally {
       setIsProcessing(false);
+      // 連續簽到：清空並回焦
+      setToken('');
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
     }
   };
 
