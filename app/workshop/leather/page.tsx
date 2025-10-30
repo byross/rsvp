@@ -168,25 +168,35 @@ function LeatherWorkshopCheckinContent() {
   };
 
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setToken(value);
-    
-    // 自動檢測 QR Code 掃描
-    // 檢查是否為 JSON 格式（QR Code 掃描器會輸入完整的 JSON 對象）
-    if (value && value.startsWith('{') && value.includes('"token"') && !isProcessing) {
-      try {
-        const qrData = JSON.parse(value);
-        if (qrData.token && qrData.token.startsWith('token_')) {
-          // 從 JSON 中提取 token 並立即觸發簽到
-          handleCheckIn(qrData.token);
+    const raw = e.target.value;
+    setToken(raw);
+
+    if (isProcessing) return;
+
+    const extracted = (() => {
+      if (!raw) return null;
+      const s = raw.trim();
+      // 優先嘗試 JSON 解析
+      if (s.startsWith('{') && s.includes('"token"')) {
+        try {
+          const obj = JSON.parse(s);
+          if (obj && typeof obj.token === 'string' && obj.token.trim()) {
+            return obj.token.trim();
+          }
+        } catch {
+          // ignore
         }
-      } catch (error) {
-        // 如果解析失敗，不做任何事情
       }
-    }
-    // 如果是純 token 字符串（向後兼容）
-    else if (value && value.startsWith('token_') && value.length >= 16 && !isProcessing) {
-      handleCheckIn(value);
+      // 從任意字串中用正則抽取 token
+      const m = s.match(/"token"\s*:\s*"?([A-Za-z0-9_\-]+)"?/);
+      if (m && m[1]) return m[1];
+      // 純 token 字串（同時支援下劃線與連字號兩種格式）
+      if (s.startsWith('token_') || s.startsWith('token-')) return s;
+      return null;
+    })();
+
+    if (extracted) {
+      handleCheckIn(extracted);
     }
   };
 
