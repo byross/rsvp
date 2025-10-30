@@ -50,6 +50,7 @@ function PerfumeWorkshopCheckinContent() {
   const [guests, setGuests] = useState<{[key: string]: WorkshopGuest[]}>({});
   const [loadingCheckins, setLoadingCheckins] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const times = ['1630', '1700', '1730', '1800'];
   
@@ -78,6 +79,16 @@ function PerfumeWorkshopCheckinContent() {
   useEffect(() => {
     inputRef.current?.focus();
   }, [guest]);
+
+  // 卸載時清理計時器
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+        blurTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // 載入所有時段的嘉賓列表（只在需要時調用）
   const loadCheckins = useCallback(async () => {
@@ -258,6 +269,18 @@ function PerfumeWorkshopCheckinContent() {
                 value={token}
                 onChange={handleTokenChange}
                 onKeyPress={handleKeyPress}
+                onBlur={() => {
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                  blurTimerRef.current = setTimeout(() => {
+                    inputRef.current?.focus();
+                  }, 2000);
+                }}
+                onFocus={() => {
+                  if (blurTimerRef.current) {
+                    clearTimeout(blurTimerRef.current);
+                    blurTimerRef.current = null;
+                  }
+                }}
                 placeholder="請掃描 QR Code 或輸入 token 後按 Enter"
                 className="w-full text-lg"
                 disabled={isProcessing}
