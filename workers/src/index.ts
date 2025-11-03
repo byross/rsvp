@@ -915,7 +915,7 @@ app.post('/api/admin/import', requireSimpleAuth, async (c) => {
           continue;
         }
 
-        const token = `token-${crypto.randomUUID()}`;
+        const token = `token_${crypto.randomUUID().replace(/-/g, '').substring(0, 12)}`;
         const id = crypto.randomUUID();
 
         await c.env.DB
