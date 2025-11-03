@@ -40,6 +40,7 @@ export async function verifyChecksum(
 
 /**
  * Generate QR code data string (to be encoded as QR image)
+ * Returns only the token to keep QR code short and scannable
  */
 export async function generateQRCodeData(
   guestId: string,
@@ -48,25 +49,9 @@ export async function generateQRCodeData(
   category: GuestCategory,
   secret: string
 ): Promise<string> {
-  const timestamp = Date.now();
-  
-  const payload: QRCodePayload = {
-    id: guestId,
-    token,
-    name,
-    category,
-    timestamp,
-  };
-
-  const checksum = await generateChecksum(payload, secret);
-
-  // Create QR code data
-  const qrData = JSON.stringify({
-    ...payload,
-    checksum,
-  });
-
-  return qrData;
+  // Return only token to keep QR code short and easily scannable
+  // The backend scan endpoints support both token-only and full JSON formats
+  return token;
 }
 
 /**
