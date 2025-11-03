@@ -460,17 +460,9 @@ function PerfumeWorkshopCheckinContent() {
                           </div>
                           <div className="text-right">
                             {guest.checked_in ? (
-                              <div>
-                                <Badge className="bg-green-100 text-green-700 border-green-200">
-                                  已簽到
-                                </Badge>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {guest.checked_in_at && new Date(guest.checked_in_at).toLocaleTimeString('zh-HK', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </p>
-                              </div>
+                              <Badge className="bg-green-100 text-green-700 border-green-200">
+                                已簽到
+                              </Badge>
                             ) : (
                               <Badge variant="outline" className="text-gray-500">
                                 未簽到
