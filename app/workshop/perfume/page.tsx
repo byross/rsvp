@@ -183,42 +183,50 @@ function PerfumeWorkshopCheckinContent() {
     }
   };
 
-  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    setToken(raw);
-
-    if (isProcessing) return;
-
-    const extracted = (() => {
-      if (!raw) return null;
-      const s = raw.trim();
-      // 優先嘗試 JSON 解析
-      if (s.startsWith('{') && s.includes('"token"')) {
-        try {
-          const obj = JSON.parse(s);
-          if (obj && typeof obj.token === 'string' && obj.token.trim()) {
-            return obj.token.trim();
-          }
-        } catch {
-          // ignore
+  // 解析 token（從 JSON、正則或純 token 字串中提取）
+  const extractToken = (raw: string): string | null => {
+    if (!raw) return null;
+    const s = raw.trim();
+    
+    // 優先嘗試 JSON 解析
+    if (s.startsWith('{') && s.includes('"token"')) {
+      try {
+        const obj = JSON.parse(s);
+        if (obj && typeof obj.token === 'string' && obj.token.trim()) {
+          return obj.token.trim();
         }
+      } catch {
+        // ignore
       }
-      // 從任意字串中用正則抽取 token
-      const m = s.match(/"token"\s*:\s*"?([A-Za-z0-9_\-]+)"?/);
-      if (m && m[1]) return m[1];
-      // 純 token 字串（同時支援下劃線與連字號兩種格式）
-      if (s.startsWith('token_') || s.startsWith('token-')) return s;
-      return null;
-    })();
-
-    if (extracted) {
-      handleCheckIn(extracted);
     }
+    
+    // 從任意字串中用正則抽取 token
+    const m = s.match(/"token"\s*:\s*"?([A-Za-z0-9_\-]+)"?/);
+    if (m && m[1]) return m[1];
+    
+    // 純 token 字串（同時支援下劃線與連字號兩種格式）
+    if (s.startsWith('token_') || s.startsWith('token-')) return s;
+    
+    // 如果都沒有匹配，返回原始輸入（可能是純 token）
+    return s || null;
   };
 
+  // 監聽輸入變化，只更新 state
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setToken(value);
+  };
+
+  // 監聽 Enter 鍵自動簽到
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleCheckIn(token);
+    if (e.key === 'Enter' && token.trim() && !isProcessing) {
+      const extracted = extractToken(token);
+      if (extracted) {
+        handleCheckIn(extracted);
+      } else {
+        // 如果無法解析，嘗試直接使用原始輸入
+        handleCheckIn(token);
+      }
     }
   };
 
