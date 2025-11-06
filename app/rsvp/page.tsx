@@ -164,7 +164,7 @@ function RSVPContent() {
     }
 
     if (formData.cocktail === null) {
-      setError('請選擇是否出席雞尾酒會');
+      setError('請選擇是否出席歡迎酒會');
       return;
     }
 
@@ -266,9 +266,9 @@ function RSVPContent() {
                   <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
                 )}
                 <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">雞尾酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">歡迎酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
                 <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '香水'} ${timeText}` : '未選擇'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '調香'} ${timeText}` : '未選擇'}</span></div>
               </div>
             </div>
             <div className="flex flex-col items-center gap-3">
@@ -283,7 +283,7 @@ function RSVPContent() {
                 <li>活動當日請提早 15 分鐘到達</li>
                 <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
                 {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
-                {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '香水工作坊'}（{timeText}）</li>}
+                {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '調香工作坊'}（{timeText}）</li>}
                 <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
               </ul>
             </div>
@@ -328,7 +328,7 @@ function RSVPContent() {
           </CardTitle>
           <CardDescription className="text-center text-base">
             {guest?.invite_type === 'named' 
-              ? `親愛的 ${guest.name}，誠摯邀請您出席` 
+              ? `親愛的 ${guest.name}，我們誠摯邀請您出席` 
               : '請填寫實際出席者資料'}
           </CardDescription>
           
@@ -418,7 +418,7 @@ function RSVPContent() {
               <>
                 {/* Cocktail Party Attendance */}
                 <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
-                  <Label className="text-base font-semibold">出席雞尾酒會 *</Label>
+                  <Label className="text-base font-semibold">出席歡迎酒會 *</Label>
                   <RadioGroup
                     value={formData.cocktail === null ? '' : formData.cocktail.toString()}
                     onValueChange={(value) => setFormData({ ...formData, cocktail: value === 'true' })}
@@ -485,7 +485,7 @@ function RSVPContent() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="leather">皮革工作坊</SelectItem>
-                        <SelectItem value="perfume">香水工作坊</SelectItem>
+                        <SelectItem value="perfume">調香工作坊</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

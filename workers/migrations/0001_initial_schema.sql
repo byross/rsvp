@@ -38,3 +38,4 @@ CREATE INDEX IF NOT EXISTS idx_scan_logs_scan_time ON scan_logs(scan_time);
 
 
 
+

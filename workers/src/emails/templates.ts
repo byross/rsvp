@@ -133,7 +133,7 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
     <div class="content">
       <p class="greeting">尊敬的 <strong>${data.guestName}</strong>，</p>
       <p class="message">
-        為興祝天網(NetCraft)成立三十週年，我們誠邀您出席慶典晚宴 ，與我們一同回共慶顧光輝歷程。
+        為興祝天網(NetCraft)成立三十週年，我們誠邀您出席慶典晚宴，與我們一同回共慶顧光輝歷程。
       </p>
       
       <div class="event-details">
@@ -148,8 +148,8 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
       </p>
       <ul style="margin: 20px 0; padding-left: 20px; line-height: 1.8;">
         <li>晚宴</li>
-        <li>雞尾酒會</li>
-        <li>工作坊體驗（皮革 / 香水）</li>
+        <li>歡迎酒會</li>
+        <li>工作坊體驗（皮革 / 調香）</li>
       </ul>
 
       <center>
@@ -298,8 +298,8 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
       </p>
       <ul style="margin: 20px 0; padding-left: 20px; line-height: 1.8;">
         <li>晚宴</li>
-        <li>雞尾酒會</li>
-        <li>工作坊體驗（皮革 / 香水）</li>
+        <li>歡迎酒會</li>
+        <li>工作坊體驗（皮革 / 調香）</li>
       </ul>
 
       <center>
@@ -334,7 +334,7 @@ export function generateCompanyInvitationEmail(data: InvitationEmailData): strin
  */
 export function generateConfirmationEmail(data: ConfirmationEmailData): string {
   const workshopName = data.workshopType === 'leather' ? '皮革工作坊' : 
-                       data.workshopType === 'perfume' ? '香水工作坊' : null;
+                       data.workshopType === 'perfume' ? '調香工作坊' : null;
   
   const workshopTimeFormatted = data.workshopTime ? 
     `${data.workshopTime.slice(0, 2)}:${data.workshopTime.slice(2)}` : null;
@@ -454,6 +454,30 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       <p class="message">
         感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：
       </p>
+
+          {/* Event Details */}
+          <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
+                <span className="text-slate-600">2025年12月17日（星期三）</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
+                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
+                <div className="text-slate-600">
+                  <div>16:15 接待處開放</div>
+                  <div>16:30 歡迎酒會及工作坊</div>
+                  <div>18:30 晚宴正式開始</div>
+                  <div>21:00 晚宴結束</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
       
       <div class="summary-box">
         <h3>您的確認資料</h3>
@@ -466,7 +490,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           <strong>${data.dinner ? '✓ 出席' : '✗ 不出席'}</strong>
         </div>
         <div class="summary-item">
-          <span>雞尾酒會：</span>
+          <span>歡迎酒會：</span>
           <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
         </div>
         ${data.vegetarian ? `
@@ -498,6 +522,21 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         </p>
       </div>
 
+      {/* Parking Information */}
+      <div className="p-6 bg-slate-50 border border-slate-200 rounded-lg">
+        <div className="flex items-start space-x-3">
+          <svg className="w-6 h-6 text-slate-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          <div>
+            <h4 className="font-semibold text-slate-700 mb-1">停車資訊</h4>
+            <p className="text-sm text-slate-600">
+            澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
+            </p>
+          </div>
+        </div>
+      </div>      
+
       <div class="important-notice">
         <h4>⚠️ 重要提示</h4>
         <ul>
@@ -510,12 +549,6 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         </ul>
       </div>
 
-      <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin-top: 30px;">
-        <h4 style="margin-top: 0; color: #10b981;">活動詳情</h4>
-        <p><strong>活動名稱：</strong>${data.eventName}</p>
-        <p><strong>日期時間：</strong>${data.eventDate}</p>
-        <p><strong>活動地點：</strong>${data.eventVenue}</p>
-      </div>
     </div>
     <div class="footer">
       <p>期待在活動中見到您！</p>
