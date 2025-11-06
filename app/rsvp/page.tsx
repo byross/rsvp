@@ -287,20 +287,41 @@ function RSVPContent() {
                 <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
               </ul>
             </div>
-            <div className="bg-green-50 p-4 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">活動詳情</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-start">
-                  <span className="text-slate-700 min-w-[68px]">活動名稱：</span>
-                  <span className="text-slate-700">天網(NetCraft)三十週年晚宴</span>
+            {/* Event Details */}
+            <div className="p-6 rounded-lg border" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%)', borderColor: '#bfdbfe' }}>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e40af', fontSize: '18px', margin: '0 0 16px 0' }}>活動詳情</h3>
+              <div className="space-y-3 text-sm" style={{ fontSize: '14px', lineHeight: '1.8' }}>
+                <div className="flex items-start" style={{ marginBottom: '12px' }}>
+                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>日期：</span>
+                  <span style={{ color: '#475569' }}>2025年12月17日（星期三）</span>
+                </div>
+                <div className="flex items-start" style={{ marginBottom: '12px' }}>
+                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>地點：</span>
+                  <span style={{ color: '#475569' }}>澳門銀河國際會議中心地下宴會廳</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="text-slate-700 min-w-[68px]">日期時間：</span>
-                  <span className="text-slate-700">2025年12月17日（星期三）</span>
+                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>時間：</span>
+                  <div style={{ color: '#475569' }}>
+                    <div>16:15 接待處開放</div>
+                    <div>16:30 歡迎酒會及工作坊</div>
+                    <div>18:30 晚宴正式開始</div>
+                    <div>21:00 晚宴結束</div>
+                  </div>
                 </div>
-                <div className="flex items-start">
-                  <span className="text-slate-700 min-w-[68px]">活動地點：</span>
-                  <span className="text-slate-700">澳門銀河國際會議中心地下宴會廳</span>
+              </div>
+            </div>
+
+            {/* Parking Information */}
+            <div className="p-6 rounded-lg border" style={{ background: '#f8f9fa', borderColor: '#e9ecef' }}>
+              <div className="flex items-start gap-3" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <svg className="flex-shrink-0" style={{ width: '24px', height: '24px', color: '#6c757d', marginTop: '2px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <div>
+                  <h4 className="font-semibold mb-1" style={{ fontWeight: '600', color: '#495057', margin: '0 0 8px 0', fontSize: '16px' }}>停車資訊</h4>
+                  <p className="text-sm" style={{ fontSize: '14px', color: '#6c757d', margin: '0', lineHeight: '1.6' }}>
+                    澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
+                  </p>
                 </div>
               </div>
             </div>

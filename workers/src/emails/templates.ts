@@ -455,28 +455,29 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：
       </p>
 
-          {/* Event Details */}
-          <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
-                <span className="text-slate-600">2025年12月17日（星期三）</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
-                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
-                <div className="text-slate-600">
-                  <div>16:15 接待處開放</div>
-                  <div>16:30 歡迎酒會及工作坊</div>
-                  <div>18:30 晚宴正式開始</div>
-                  <div>21:00 晚宴結束</div>
-                </div>
-              </div>
+      <!-- Event Details -->
+      <div style="background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%); padding: 24px; border-radius: 8px; border: 1px solid #bfdbfe; margin: 30px 0;">
+        <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">活動詳情</h3>
+        <div style="font-size: 14px; line-height: 1.8;">
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">日期：</span>
+            <span style="color: #475569;">${data.eventDate}</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">地點：</span>
+            <span style="color: #475569;">${data.eventVenue}</span>
+          </div>
+          <div style="display: flex; align-items: flex-start;">
+            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">時間：</span>
+            <div style="color: #475569;">
+              <div>16:15 接待處開放</div>
+              <div>16:30 歡迎酒會及工作坊</div>
+              <div>18:30 晚宴正式開始</div>
+              <div>21:00 晚宴結束</div>
             </div>
           </div>
+        </div>
+      </div>
 
       
       <div class="summary-box">
