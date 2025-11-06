@@ -81,7 +81,7 @@ export default function AdminPage() {
 
   const workshopData = [
     { name: '皮革工作坊', value: stats?.workshopLeather || 0, color: '#d97706' },
-    { name: '香水工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
+    { name: '調香工作坊', value: stats?.workshopPerfume || 0, color: '#9333ea' },
     { name: '未報名', value: (stats?.confirmed || 0) - (stats?.workshopLeather || 0) - (stats?.workshopPerfume || 0), color: '#e5e7eb' },
   ].filter(item => item.value > 0); // 過濾掉 0 值的項目
 
@@ -507,7 +507,7 @@ export default function AdminPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">香水工作坊</span>
+                  <span className="font-medium">調香工作坊</span>
                   <Badge className="bg-purple-600 text-lg">
                     {stats?.workshopPerfume || 0} 人
                   </Badge>

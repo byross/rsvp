@@ -569,7 +569,7 @@ export default function GuestsPage() {
 
   const formatWorkshop = (type: string | null, time: string | null) => {
     if (!type) return '-';
-    const typeName = type === 'leather' ? '皮革' : '香水';
+    const typeName = type === 'leather' ? '皮革' : '調香';
     const timeFormatted = time ? `${time.slice(0, 2)}:${time.slice(2)}` : '';
     return `${typeName} ${timeFormatted}`;
   };
@@ -1195,7 +1195,7 @@ export default function GuestsPage() {
                       <SelectContent>
                         <SelectItem value="none">無</SelectItem>
                         <SelectItem value="leather">皮革工作坊</SelectItem>
-                        <SelectItem value="perfume">香水工作坊</SelectItem>
+                        <SelectItem value="perfume">調香工作坊</SelectItem>
                       </SelectContent>
                     </Select>
                 </div>

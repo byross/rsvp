@@ -27,7 +27,7 @@ export default function ConfirmedPage() {
 
   const formatWorkshopType = (type: string | null) => {
     if (!type) return null;
-    return type === 'leather' ? '皮革工作坊' : '香水工作坊';
+    return type === 'leather' ? '皮革工作坊' : '調香工作坊';
   };
 
   const formatWorkshopTime = (time: string | null) => {
@@ -158,7 +158,7 @@ export default function ConfirmedPage() {
               <div>
                 <h4 className="font-semibold text-slate-700 mb-1">停車資訊</h4>
                 <p className="text-sm text-slate-600">
-                  澳門安達仕酒店設有地下停車場，酒店賓客可免費停車。停車場24小時開放。
+                澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
                 </p>
               </div>
             </div>

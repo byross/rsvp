@@ -98,7 +98,7 @@ export default function CheckinPage() {
   const getWorkshopName = (type: string) => {
     switch (type) {
       case 'leather': return '皮革';
-      case 'perfume': return '香水';
+      case 'perfume': return '調香';
       default: return type;
     }
   };
@@ -312,6 +312,7 @@ export default function CheckinPage() {
     </main>
   );
 }
+
 
 
 
