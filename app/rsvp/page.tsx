@@ -258,36 +258,7 @@ function RSVPContent() {
             <CardDescription className="text-center">感謝您的確認！以下是您的出席資料摘要：</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="p-4 rounded-lg bg-slate-50 border">
-              <h3 className="font-semibold text-slate-800 mb-2">您的確認資料</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
-                {guest.company && (
-                  <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
-                )}
-                <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">歡迎酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '調香'} ${timeText}` : '未選擇'}</span></div>
-              </div>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
-              <p className="text-sm text-slate-500">請保存此 QR Code</p>
-              <p className="text-sm text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
-            </div>
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <h4 className="font-semibold text-amber-900 mb-2">重要提示</h4>
-              <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
-                <li>請妥善保存此郵件及 QR Code</li>
-                <li>活動當日請提早 15 分鐘到達</li>
-                <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
-                {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
-                {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '調香工作坊'}（{timeText}）</li>}
-                <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
-              </ul>
-            </div>
-            {/* Event Details */}
+            {/* Event Details - 放在最前面，與郵件一致 */}
             <div className="p-6 rounded-lg border" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%)', borderColor: '#bfdbfe' }}>
               <h3 className="font-semibold mb-4" style={{ color: '#1e40af', fontSize: '18px', margin: '0 0 16px 0' }}>活動詳情</h3>
               <div className="space-y-3 text-sm" style={{ fontSize: '14px', lineHeight: '1.8' }}>
@@ -311,6 +282,28 @@ function RSVPContent() {
               </div>
             </div>
 
+            {/* 您的確認資料 */}
+            <div className="p-4 rounded-lg bg-slate-50 border">
+              <h3 className="font-semibold text-slate-800 mb-2">您的確認資料</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
+                {guest.company && (
+                  <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">歡迎酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '調香'} ${timeText}` : '未選擇'}</span></div>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-3">
+              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
+              <p className="text-sm text-slate-500">請保存此 QR Code</p>
+              <p className="text-sm text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
+            </div>
+
             {/* Parking Information */}
             <div className="p-6 rounded-lg border" style={{ background: '#f8f9fa', borderColor: '#e9ecef' }}>
               <div className="flex items-start gap-3" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -324,6 +317,19 @@ function RSVPContent() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Important Notice - 放在最後 */}
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <h4 className="font-semibold text-amber-900 mb-2">重要提示</h4>
+              <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                <li>請妥善保存此郵件及 QR Code</li>
+                <li>活動當日請提早 15 分鐘到達</li>
+                <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
+                {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
+                {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '調香工作坊'}（{timeText}）</li>}
+                <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
+              </ul>
             </div>
           </CardContent>
         </Card>
