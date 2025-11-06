@@ -522,20 +522,20 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         </p>
       </div>
 
-      {/* Parking Information */}
-      <div className="p-6 bg-slate-50 border border-slate-200 rounded-lg">
-        <div className="flex items-start space-x-3">
-          <svg className="w-6 h-6 text-slate-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+      <!-- Parking Information -->
+      <div style="background: #f8f9fa; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin: 30px 0;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <svg style="width: 24px; height: 24px; color: #6c757d; flex-shrink: 0; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
           <div>
-            <h4 className="font-semibold text-slate-700 mb-1">停車資訊</h4>
-            <p className="text-sm text-slate-600">
-            澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
+            <h4 style="font-weight: 600; color: #495057; margin: 0 0 8px 0; font-size: 16px;">停車資訊</h4>
+            <p style="font-size: 14px; color: #6c757d; margin: 0; line-height: 1.6;">
+              澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
             </p>
           </div>
         </div>
-      </div>      
+      </div>
 
       <div class="important-notice">
         <h4>⚠️ 重要提示</h4>
