@@ -95,7 +95,7 @@ export async function sendInvitationEmail(
     const emailPayload: Record<string, unknown> = {
       from: `${config.fromName} <${config.fromEmail}>`,
       to: [params.to],
-      subject: `【邀請】${params.eventName}`,
+      subject: `【邀請函】${params.eventName}`,
       html: htmlContent,
     };
 

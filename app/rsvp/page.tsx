@@ -59,6 +59,10 @@ function RSVPContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
+  const eventName = process.env.NEXT_PUBLIC_EVENT_NAME ?? '天網資訊科技（澳門）有限公司三十週年晚宴';
+  const eventDate = process.env.NEXT_PUBLIC_EVENT_DATE ?? '2025年12月17日（星期三）';
+  const eventVenue = process.env.NEXT_PUBLIC_EVENT_VENUE ?? '澳門銀河國際會議中心地下宴會廳';
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -258,45 +262,6 @@ function RSVPContent() {
             <CardDescription className="text-center">感謝您的確認！以下是您的出席資料摘要：</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Event Details - 放在最前面，與郵件一致 */}
-            <div className="p-6 rounded-lg border" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%)', borderColor: '#bfdbfe' }}>
-              <h3 className="font-semibold mb-4" style={{ color: '#1e40af', fontSize: '18px', margin: '0 0 16px 0' }}>活動詳情</h3>
-              <div className="space-y-3 text-sm" style={{ fontSize: '14px', lineHeight: '1.8' }}>
-                <div className="flex items-start" style={{ marginBottom: '12px' }}>
-                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>日期：</span>
-                  <span style={{ color: '#475569' }}>2025年12月17日（星期三）</span>
-                </div>
-                <div className="flex items-start" style={{ marginBottom: '12px' }}>
-                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>地點：</span>
-                  <span style={{ color: '#475569' }}>澳門銀河國際會議中心地下宴會廳</span>
-                </div>
-                <div className="flex items-start">
-                  <span className="font-semibold" style={{ fontWeight: '600', color: '#334155', minWidth: '60px', flexShrink: 0 }}>時間：</span>
-                  <div style={{ color: '#475569' }}>
-                    <div>16:15 接待處開放</div>
-                    <div>16:30 歡迎酒會及工作坊</div>
-                    <div>18:30 晚宴正式開始</div>
-                    <div>21:00 晚宴結束</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 您的確認資料 */}
-            <div className="p-4 rounded-lg bg-slate-50 border">
-              <h3 className="font-semibold text-slate-800 mb-2">您的確認資料</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
-                {guest.company && (
-                  <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
-                )}
-                <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">歡迎酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '調香'} ${timeText}` : '未選擇'}</span></div>
-              </div>
-            </div>
-
             {/* QR Code */}
             <div className="flex flex-col items-center gap-3">
               <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
@@ -319,7 +284,7 @@ function RSVPContent() {
               </div>
             </div>
 
-            {/* Important Notice - 放在最後 */}
+            {/* Important Notice */}
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
               <h4 className="font-semibold text-amber-900 mb-2">重要提示</h4>
               <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
@@ -329,6 +294,42 @@ function RSVPContent() {
                 {(guest.vegetarian ?? 0) === 1 && <li>我們已為您準備素食餐點</li>}
                 {guest.workshop_type && <li>您的工作坊為：{guest.workshop_type === 'leather' ? '皮革工作坊' : '調香工作坊'}（{timeText}）</li>}
                 <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
+              </ul>
+            </div>
+
+            {/* Confirmation Summary */}
+            <div className="p-4 rounded-lg bg-slate-50 border">
+              <h3 className="font-semibold text-slate-800 mb-2">您的確認資料</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between"><span className="text-slate-600">姓名</span><span className="font-medium">{guest.name}</span></div>
+                {guest.company && (
+                  <div className="flex justify-between"><span className="text-slate-600">公司</span><span className="font-medium">{guest.company}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-slate-600">晚宴</span><span className="font-medium">{(guest.dinner ?? 1) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">歡迎酒會</span><span className="font-medium">{(guest.cocktail ?? 0) === 1 ? '參加' : '不參加'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">素食</span><span className="font-medium">{(guest.vegetarian ?? 0) === 1 ? '需要' : '不需要'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">工作坊</span><span className="font-medium">{guest.workshop_type ? `${guest.workshop_type === 'leather' ? '皮革' : '調香'} ${timeText}` : '未選擇'}</span></div>
+              </div>
+            </div>
+
+            {/* Event Details */}
+            <div className="p-6 rounded-lg border" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%)', borderColor: '#bfdbfe' }}>
+              <h3 className="font-semibold mb-4" style={{ color: '#1e40af', fontSize: '18px', margin: '0 0 16px 0' }}>活動詳情</h3>
+              <ul className="space-y-2 text-sm" style={{ fontSize: '14px', lineHeight: '1.8', margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+                <li><strong>活動名稱：</strong>{eventName}</li>
+                <li><strong>日期：</strong>{eventDate}</li>
+                <li><strong>地點：</strong>{eventVenue}</li>
+                <li>
+                  <strong>時間：</strong>
+                  <ul className="ml-6 list-disc space-y-1">
+                    <li>16:15 接待處開放</li>
+                    <li>16:30 歡迎酒會及工作坊</li>
+                    <li>18:30 晚宴正式開始</li>
+                    <li>21:00 晚宴結束</li>
+                  </ul>
+                </li>
+                <li><strong>服裝要求：</strong>商務休閒（Business Casual）</li>
+                <li><strong>泊車資訊：</strong>會場設有免費泊車</li>
               </ul>
             </div>
           </CardContent>

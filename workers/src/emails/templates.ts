@@ -133,24 +133,26 @@ export function generateNamedGuestInvitationEmail(data: InvitationEmailData): st
     <div class="content">
       <p class="greeting">尊敬的 <strong>${data.guestName}</strong>，</p>
       <p class="message">
-        為興祝天網(NetCraft)成立三十週年，我們誠邀您出席慶典晚宴，與我們一同回共慶顧光輝歷程。
+        為慶祝天網資訊科技（澳門）有限公司邁向三十週年的重要里程碑，我們將隆重舉辦週年晚宴，誠邀  閣下出席慶典晚宴，與我們一同回顧光輝歷程。
       </p>
       
       <div class="event-details">
         <h3>活動詳情</h3>
-        <p><strong>活動名稱：</strong>${data.eventName}</p>
-        <p><strong>日期時間：</strong>${data.eventDate}</p>
-        <p><strong>活動地點：</strong>${data.eventVenue}</p>
-      </div>
-
-      <p class="message">
-        活動包括：
-      </p>
       <ul style="margin: 20px 0; padding-left: 20px; line-height: 1.8;">
-        <li>晚宴</li>
-        <li>歡迎酒會</li>
-        <li>工作坊體驗（皮革 / 調香）</li>
-      </ul>
+        <li>日期：2025年12月17日（星期三）</li>
+        <li>地點：澳門銀河國際會議中心地下宴會廳</li>
+        <li>時間：
+          <ul>
+              <li>16:15 接待處開放</li>
+              <li>16:30 歡迎酒會及工作坊</li>
+              <li>18:30 晚宴正式開始</li>
+              <li>21:00 晚宴結束</li>
+          </ul>
+        </li>
+         <li>服裝要求：商務休閒 （Business Causal）</li>
+         <li>會場設有免費泊車</li>
+       </ul>
+      </div>
 
       <center>
         <a href="${data.inviteUrl}" class="cta-button">
@@ -455,63 +457,6 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
         感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：
       </p>
 
-      <!-- Event Details -->
-      <div style="background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%); padding: 24px; border-radius: 8px; border: 1px solid #bfdbfe; margin: 30px 0;">
-        <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">活動詳情</h3>
-        <div style="font-size: 14px; line-height: 1.8;">
-          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">日期：</span>
-            <span style="color: #475569;">${data.eventDate}</span>
-          </div>
-          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">地點：</span>
-            <span style="color: #475569;">${data.eventVenue}</span>
-          </div>
-          <div style="display: flex; align-items: flex-start;">
-            <span style="font-weight: 600; color: #334155; min-width: 60px; flex-shrink: 0;">時間：</span>
-            <div style="color: #475569;">
-              <div>16:15 接待處開放</div>
-              <div>16:30 歡迎酒會及工作坊</div>
-              <div>18:30 晚宴正式開始</div>
-              <div>21:00 晚宴結束</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
-      <div class="summary-box">
-        <h3>您的確認資料</h3>
-        <div class="summary-item">
-          <span>姓名：</span>
-          <strong>${data.guestName}</strong>
-        </div>
-        <div class="summary-item">
-          <span>晚宴：</span>
-          <strong>${data.dinner ? '✓ 出席' : '✗ 不出席'}</strong>
-        </div>
-        <div class="summary-item">
-          <span>歡迎酒會：</span>
-          <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
-        </div>
-        ${data.vegetarian ? `
-        <div class="summary-item">
-          <span>飲食需求：</span>
-          <strong>素食</strong>
-        </div>
-        ` : ''}
-        ${workshopName ? `
-        <div class="summary-item">
-          <span>工作坊：</span>
-          <strong>${workshopName}</strong>
-        </div>
-        <div class="summary-item">
-          <span>時段：</span>
-          <strong>${workshopTimeFormatted}</strong>
-        </div>
-        ` : ''}
-      </div>
-
       <div class="qr-code-box">
         <h3 style="color: #10b981; margin-top: 0;">您的活動 QR Code</h3>
         <img src="${data.qrCodeDataURL}" alt="QR Code" />
@@ -547,6 +492,59 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
           ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
           <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
+        </ul>
+      </div>
+
+      <div class="summary-box">
+        <h3>您的確認資料</h3>
+        <div class="summary-item">
+          <span>姓名：</span>
+          <strong>${data.guestName}</strong>
+        </div>
+        <div class="summary-item">
+          <span>晚宴：</span>
+          <strong>${data.dinner ? '✓ 出席' : '✗ 不出席'}</strong>
+        </div>
+        <div class="summary-item">
+          <span>歡迎酒會：</span>
+          <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
+        </div>
+        ${data.vegetarian ? `
+        <div class="summary-item">
+          <span>飲食需求：</span>
+          <strong>素食</strong>
+        </div>
+        ` : ''}
+        ${workshopName ? `
+        <div class="summary-item">
+          <span>工作坊：</span>
+          <strong>${workshopName}</strong>
+        </div>
+        <div class="summary-item">
+          <span>時段：</span>
+          <strong>${workshopTimeFormatted}</strong>
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Event Details -->
+      <div style="background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%); padding: 24px; border-radius: 8px; border: 1px solid #bfdbfe; margin: 30px 0;">
+        <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">活動詳情</h3>
+        <ul style="margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.8;">
+          <li><strong>活動名稱：</strong>${data.eventName}</li>
+          <li><strong>日期：</strong>${data.eventDate}</li>
+          <li><strong>地點：</strong>${data.eventVenue}</li>
+          <li>
+            <strong>時間：</strong>
+            <ul style="margin: 10px 0 0 20px; padding: 0;">
+              <li>16:15 接待處開放</li>
+              <li>16:30 歡迎酒會及工作坊</li>
+              <li>18:30 晚宴正式開始</li>
+              <li>21:00 晚宴結束</li>
+            </ul>
+          </li>
+          <li><strong>服裝要求：</strong>商務休閒（Business Casual）</li>
+          <li><strong>泊車資訊：</strong>會場設有免費泊車</li>
         </ul>
       </div>
 
