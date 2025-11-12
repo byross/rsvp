@@ -39,6 +39,16 @@ interface SendConfirmationEmailParams {
   rsvpUrl: string;
 }
 
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
 /**
  * Send invitation email
  */
@@ -63,6 +73,41 @@ export async function sendInvitationEmail(
           eventVenue: params.eventVenue,
         });
 
+    let invitationLetterBase64: string | null = null;
+
+    try {
+      const inviteUrlObject = new URL(params.inviteUrl);
+      const letterUrl = inviteUrlObject.hostname === 'localhost'
+        ? 'https://rsvp.momini.app/images/letter.pdf'
+        : new URL('/images/letter.pdf', inviteUrlObject.origin).toString();
+
+      const letterResponse = await fetch(letterUrl);
+      if (letterResponse.ok) {
+        const letterBuffer = await letterResponse.arrayBuffer();
+        invitationLetterBase64 = arrayBufferToBase64(letterBuffer);
+      } else {
+        console.warn('Failed to fetch invitation letter PDF:', letterResponse.status, letterResponse.statusText);
+      }
+    } catch (error) {
+      console.warn('Invitation letter fetch error:', error);
+    }
+
+    const emailPayload: Record<string, unknown> = {
+      from: `${config.fromName} <${config.fromEmail}>`,
+      to: [params.to],
+      subject: `【邀請】${params.eventName}`,
+      html: htmlContent,
+    };
+
+    if (invitationLetterBase64) {
+      emailPayload.attachments = [
+        {
+          filename: 'NetCraft-Invitation-Letter.pdf',
+          content: invitationLetterBase64,
+        },
+      ];
+    }
+
     // Use Fetch API instead of Resend SDK for better Cloudflare Workers compatibility
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -70,12 +115,7 @@ export async function sendInvitationEmail(
         'Authorization': `Bearer ${config.resendApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: `${config.fromName} <${config.fromEmail}>`,
-        to: [params.to],
-        subject: `【邀請】${params.eventName}`,
-        html: htmlContent,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     const result = await response.json();
