@@ -491,7 +491,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
           <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
           ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
           ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
-          <li>如需修改資料或查詢，可致電+853 6309 0853 或電郵至 celebrate30@netcraft.com.mo</li>
+          <li>如需修改資料或查詢，可致電+853 6309 0853 , +853 6290 8186或電郵至 celebrate30@netcraft.com.mo</li>
         </ul>
       </div>
 
