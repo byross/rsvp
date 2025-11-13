@@ -151,27 +151,39 @@ export default function ConfirmedPage() {
           )}
 
           {/* Event Details */}
-          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-            <h3 className="font-semibold text-lg text-slate-700 mb-4">活動詳情</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">日期：</span>
-                <span className="text-slate-600">2025年12月17日（星期三）</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">地點：</span>
-                <span className="text-slate-600">澳門銀河國際會議中心地下宴會廳</span>
-              </div>
-              <div className="flex items-start">
-                <span className="font-semibold text-slate-700 min-w-[60px]">時間：</span>
-                <div className="text-slate-600">
-                <div>16:15 接待處開放</div>
-                  <div>16:30 歡迎酒會及工作坊</div>
-                  <div>18:30 晚宴正式開始</div>
-                  <div>21:00 晚宴結束</div>
-                </div>
-              </div>
-            </div>
+          <div className="p-6 rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <h3 className="font-semibold text-lg text-indigo-900 mb-4">活動詳情</h3>
+            <ul className="space-y-2 text-sm text-slate-700 list-none p-0">
+              <li>
+                <span className="font-semibold">活動名稱：</span>
+                <span>天網資訊科技（澳門）有限公司三十週年晚宴</span>
+              </li>
+              <li>
+                <span className="font-semibold">日期：</span>
+                <span>2025年12月17日（星期三）</span>
+              </li>
+              <li>
+                <span className="font-semibold">地點：</span>
+                <span>澳門銀河國際會議中心地下宴會廳</span>
+              </li>
+              <li>
+                <div className="font-semibold">時間：</div>
+                <ul className="mt-2 pl-4 space-y-1 list-disc list-outside text-slate-600">
+                  <li>16:15 接待處開放</li>
+                  <li>16:30 歡迎酒會及工作坊</li>
+                  <li>18:30 晚宴正式開始</li>
+                  <li>21:00 晚宴結束</li>
+                </ul>
+              </li>
+              <li>
+                <span className="font-semibold">服裝要求：</span>
+                <span>商務休閒（Business Casual）</span>
+              </li>
+              <li>
+                <span className="font-semibold">泊車資訊：</span>
+                <span>會場設有免費泊車</span>
+              </li>
+            </ul>
           </div>
 
         </CardContent>
