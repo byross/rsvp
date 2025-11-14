@@ -63,7 +63,6 @@ export default function ConfirmedPage() {
         <CardContent className="space-y-6">
           {confirmationData && confirmationData.dinner === false ? (
             <div className="space-y-4 text-center">
-              <p className="text-lg font-semibold text-green-900">感謝您的確認！</p>
               <p className="text-base text-muted-foreground leading-relaxed">
                 我們已收到您的 RSVP 回覆，若後續安排允許，您可隨時透過電郵
                 <a href="mailto:celebrate30@netcraft.com.mo" className="text-green-700 underline mx-1">
