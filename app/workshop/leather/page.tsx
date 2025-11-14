@@ -40,7 +40,7 @@ interface WorkshopGuestsResponse {
   guests: WorkshopGuest[];
 }
 
-const WORKSHOP_TIMES = ['1630', '1700', '1730', '1800'] as const;
+const WORKSHOP_TIMES = ['1630', '1700', '1730', '1800'];
 
 function LeatherWorkshopCheckinContent() {
   const searchParams = useSearchParams();
@@ -67,12 +67,12 @@ function LeatherWorkshopCheckinContent() {
     return WORKSHOP_TIMES[0];
   };
   
-  const [activeTime, setActiveTime] = useState(getDefaultTime());
+  const [activeTime, setActiveTime] = useState<string>(getDefaultTime());
 
   // 處理 Tab 切換，同時更新 URL
   const handleTabChange = (value: string) => {
     setActiveTime(value);
-    const index = WORKSHOP_TIMES.indexOf(value as (typeof WORKSHOP_TIMES)[number]);
+    const index = WORKSHOP_TIMES.indexOf(value);
     const tabIndex = index >= 0 ? index + 1 : 1;
     router.push(`/workshop/leather?p=${tabIndex}`);
   };
