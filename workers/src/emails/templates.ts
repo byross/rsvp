@@ -340,6 +340,7 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
   
   const workshopTimeFormatted = data.workshopTime ? 
     `${data.workshopTime.slice(0, 2)}:${data.workshopTime.slice(2)}` : null;
+  const isAttendingDinner = data.dinner === true;
 
   return `
 <!DOCTYPE html>
@@ -454,103 +455,110 @@ export function generateConfirmationEmail(data: ConfirmationEmailData): string {
       <h2 style="color: #10b981; text-align: center; font-size: 28px; margin: 0 0 20px 0;">✓ RSVP 確認成功！</h2>
       <p class="greeting">親愛的 <strong>${data.guestName}</strong>，</p>
       <p class="message">
-        感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：
+        ${isAttendingDinner 
+          ? '感謝您的確認！我們已收到您的 RSVP 回覆。以下是您的出席資料摘要：'
+          : '我們已收到您的 RSVP 回覆，若後續安排允許，您可隨時透過電郵 <a href="mailto:celebrate30@netcraft.com.mo" style="color: #10b981; text-decoration: underline;">celebrate30@netcraft.com.mo</a> 或致電 +853 6309 0853、+853 6290 8186 與我們聯絡。'}
       </p>
 
-      <div class="qr-code-box">
-        <h3 style="color: #10b981; margin-top: 0;">您的活動 QR Code</h3>
-        <img src="${data.qrCodeDataURL}" alt="QR Code" />
-        <p style="font-size: 18px;"><strong>請保存此 QR Code</strong></p>
-        <p style="font-size: 16px;">活動當日請出示此 QR Code 以便簽到</p>
-        <p style="margin-top: 8px;">
-          如無法顯示 QR Code，請
-          <a href="${data.rsvpUrl}" style="color: #10b981; text-decoration: underline;">點擊查看</a>
-        </p>
-      </div>
+      ${isAttendingDinner ? `
+        <div class="qr-code-box">
+          <h3 style="color: #10b981; margin-top: 0;">您的活動 QR Code</h3>
+          <img src="${data.qrCodeDataURL}" alt="QR Code" />
+          <p style="font-size: 18px;"><strong>請保存此 QR Code</strong></p>
+          <p style="font-size: 16px;">活動當日請出示此 QR Code 以便簽到</p>
+          <p style="margin-top: 8px;">
+            如無法顯示 QR Code，請
+            <a href="${data.rsvpUrl}" style="color: #10b981; text-decoration: underline;">點擊查看</a>
+          </p>
+        </div>
 
-      <!-- Parking Information -->
-      <div style="background: #f8f9fa; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin: 30px 0;">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-          <svg style="width: 24px; height: 24px; color: #6c757d; flex-shrink: 0; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          <div>
-            <h4 style="font-weight: 600; color: #495057; margin: 0 0 8px 0; font-size: 16px;">停車資訊</h4>
-            <p style="font-size: 14px; color: #6c757d; margin: 0; line-height: 1.6;">
-              澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
-            </p>
+        <div style="background: #f8f9fa; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin: 30px 0;">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <svg style="width: 24px; height: 24px; color: #6c757d; flex-shrink: 0; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <div>
+              <h4 style="font-weight: 600; color: #495057; margin: 0 0 8px 0; font-size: 16px;">停車資訊</h4>
+              <p style="font-size: 14px; color: #6c757d; margin: 0; line-height: 1.6;">
+                澳門銀河安達仕酒店設有自助地下停車場(P4)，賓客可向在場職員查詢延長免費泊車時間。
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="important-notice">
-        <h4>⚠️ 重要提示</h4>
-        <ul>
-          <li>請妥善保存此郵件及 QR Code</li>
-          <li>活動當日請提早 15 分鐘到達</li>
-          <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
-          ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
-          ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
-          <li>如需修改資料或查詢，可致電+853 6309 0853 , +853 6290 8186或電郵至 celebrate30@netcraft.com.mo</li>
-        </ul>
-      </div>
+        <div class="important-notice">
+          <h4>⚠️ 重要提示</h4>
+          <ul>
+            <li>請妥善保存此郵件及 QR Code</li>
+            <li>活動當日請提早 15 分鐘到達</li>
+            <li>簽到時請出示 QR Code（可列印或使用手機顯示）</li>
+            ${data.vegetarian ? `<li>我們已為您準備素食餐點</li>` : ''}
+            ${workshopName ? `<li>您的工作坊為：${workshopName}（${workshopTimeFormatted}）</li>` : ''}
+            <li>如需修改資料或查詢，可致電+853 6309 0853 , +853 6290 8186或電郵至 celebrate30@netcraft.com.mo</li>
+          </ul>
+        </div>
 
-      <div class="summary-box">
-        <h3>您的確認資料</h3>
-        <div class="summary-item">
-          <span>姓名：</span>
-          <strong>${data.guestName}</strong>
+        <div class="summary-box">
+          <h3>您的確認資料</h3>
+          <div class="summary-item">
+            <span>姓名：</span>
+            <strong>${data.guestName}</strong>
+          </div>
+          <div class="summary-item">
+            <span>晚宴：</span>
+            <strong>${data.dinner ? '✓ 出席' : '✗ 不出席'}</strong>
+          </div>
+            <div class="summary-item">
+            <span>歡迎酒會：</span>
+            <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
+          </div>
+          ${data.vegetarian ? `
+          <div class="summary-item">
+            <span>飲食需求：</span>
+            <strong>素食</strong>
+          </div>
+          ` : ''}
+          ${workshopName ? `
+          <div class="summary-item">
+            <span>工作坊：</span>
+            <strong>${workshopName}</strong>
+          </div>
+          <div class="summary-item">
+            <span>時段：</span>
+            <strong>${workshopTimeFormatted}</strong>
+          </div>
+          ` : ''}
         </div>
-        <div class="summary-item">
-          <span>晚宴：</span>
-          <strong>${data.dinner ? '✓ 出席' : '✗ 不出席'}</strong>
-        </div>
-        <div class="summary-item">
-          <span>歡迎酒會：</span>
-          <strong>${data.cocktail ? '✓ 出席' : '✗ 不出席'}</strong>
-        </div>
-        ${data.vegetarian ? `
-        <div class="summary-item">
-          <span>飲食需求：</span>
-          <strong>素食</strong>
-        </div>
-        ` : ''}
-        ${workshopName ? `
-        <div class="summary-item">
-          <span>工作坊：</span>
-          <strong>${workshopName}</strong>
-        </div>
-        <div class="summary-item">
-          <span>時段：</span>
-          <strong>${workshopTimeFormatted}</strong>
-        </div>
-        ` : ''}
-      </div>
 
-      <!-- Event Details -->
-      <div style="background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%); padding: 24px; border-radius: 8px; border: 1px solid #bfdbfe; margin: 30px 0;">
-        <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">活動詳情</h3>
-        <ul style="margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.8;">
-          <li><strong>活動名稱：</strong>${data.eventName}</li>
-          <li><strong>日期：</strong>${data.eventDate}</li>
-          <li><strong>地點：</strong>${data.eventVenue}</li>
-          <li>
-            <strong>時間：</strong>
-            <ul style="margin: 10px 0 0 20px; padding: 0;">
-              <li>16:15 接待處開放</li>
-              <li>16:30 歡迎酒會及工作坊</li>
-              <li>18:30 晚宴正式開始</li>
-              <li>21:00 晚宴結束</li>
-            </ul>
-          </li>
-          <li><strong>服裝要求：</strong>商務休閒（Business Casual）</li>
-          <li><strong>泊車資訊：</strong>會場設有免費泊車</li>
-        </ul>
-      </div>
+        <div style="background: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%); padding: 24px; border-radius: 8px; border: 1px solid #bfdbfe; margin: 30px 0;">
+          <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">活動詳情</h3>
+          <ul style="margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.8;">
+            <li><strong>活動名稱：</strong>${data.eventName}</li>
+            <li><strong>日期：</strong>${data.eventDate}</li>
+            <li><strong>地點：</strong>${data.eventVenue}</li>
+            <li>
+              <strong>時間：</strong>
+              <ul style="margin: 10px 0 0 20px; padding: 0;">
+                <li>16:15 接待處開放</li>
+                <li>16:30 歡迎酒會及工作坊</li>
+                <li>18:30 晚宴正式開始</li>
+                <li>21:00 晚宴結束</li>
+              </ul>
+            </li>
+            <li><strong>服裝要求：</strong>商務休閒（Business Casual）</li>
+            <li><strong>泊車資訊：</strong>會場設有免費泊車</li>
+          </ul>
+        </div>
+      ` : `
+        <div style="text-align: center; padding: 30px; background: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0;">
+          <p style="font-size: 16px; color: #047857; margin-bottom: 16px;">如需進一步協助，歡迎隨時聯絡我們。</p>
+          <p style="font-size: 15px; color: #065f46; margin: 0;">祝您一切順利。</p>
+        </div>
+      `}
 
     </div>
     <div class="footer">
-      <p>期待在活動中見到您！</p>
+      <p>${isAttendingDinner ? '期待在活動中見到您！' : '感謝您的回覆！'}</p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         © 2025 <a href="https://byross.mo" style="color: #667eea; text-decoration: none;">byRoss Design and Tech</a>
         <br>
