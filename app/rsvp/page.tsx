@@ -426,7 +426,7 @@ function RSVPContent() {
 
             {/* Dinner Attendance */}
             <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
-              <Label className="text-base font-semibold">出席晚宴 *</Label>
+              <Label className="text-base font-semibold">出席晚宴(18:00 恭候) *</Label>
               <RadioGroup
                 value={formData.dinner === null ? '' : formData.dinner.toString()}
                 onValueChange={(value) => {
@@ -459,7 +459,7 @@ function RSVPContent() {
               <>
                 {/* Cocktail Party Attendance */}
                 <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
-                  <Label className="text-base font-semibold">出席歡迎酒會 *</Label>
+                  <Label className="text-base font-semibold">出席歡迎酒會(16:30 - 18:30) *</Label>
                   <RadioGroup
                     value={formData.cocktail === null ? '' : formData.cocktail.toString()}
                     onValueChange={(value) => setFormData({ ...formData, cocktail: value === 'true' })}
