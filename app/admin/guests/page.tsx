@@ -97,6 +97,10 @@ export default function GuestsPage() {
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [previewLoading, setPreviewLoading] = useState(false);
 
+  // Clear check-ins dialog state
+  const [showClearCheckinsDialog, setShowClearCheckinsDialog] = useState(false);
+  const [clearingCheckins, setClearingCheckins] = useState(false);
+
   useEffect(() => {
     fetchGuests();
   }, []);
@@ -135,6 +139,26 @@ export default function GuestsPage() {
       console.error('Failed to export CSV:', error);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const clearCheckins = async () => {
+    setClearingCheckins(true);
+    try {
+      const response = await apiPost('/api/admin/clear-checkins', {});
+      if (response.ok) {
+        setShowClearCheckinsDialog(false);
+        fetchGuests(); // 重新載入列表
+        alert('所有簽到記錄已清空');
+      } else {
+        const error = await response.json();
+        alert(error.error || '清空簽到記錄失敗');
+      }
+    } catch (error) {
+      console.error('Failed to clear check-ins:', error);
+      alert('清空簽到記錄失敗');
+    } finally {
+      setClearingCheckins(false);
     }
   };
 
@@ -618,6 +642,36 @@ export default function GuestsPage() {
               <Download className="w-4 h-4 mr-2" />
               {exporting ? '匯出中...' : '匯出 CSV'}
             </Button>
+            <Dialog open={showClearCheckinsDialog} onOpenChange={setShowClearCheckinsDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" disabled={clearingCheckins}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {clearingCheckins ? '清空中...' : '清空簽到記錄'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>確認清空簽到記錄</DialogTitle>
+                  <DialogDescription>
+                    此操作將清空所有嘉賓的簽到狀態，包括：
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>重置所有嘉賓的簽到狀態</li>
+                      <li>刪除所有簽到日誌記錄</li>
+                      <li>刪除所有工作坊簽到記錄</li>
+                    </ul>
+                    <p className="mt-3 font-semibold text-red-600">此操作無法復原，請確認是否繼續？</p>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowClearCheckinsDialog(false)}>
+                    取消
+                  </Button>
+                  <Button variant="destructive" onClick={clearCheckins} disabled={clearingCheckins}>
+                    {clearingCheckins ? '清空中...' : '確認清空'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
                 <Button>

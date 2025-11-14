@@ -1890,6 +1890,34 @@ app.get('/api/workshop/:type/:time/guests', async (c) => {
   }
 });
 
+// Clear all check-in records (admin only)
+app.post('/api/admin/clear-checkins', requireSimpleAuth, async (c) => {
+  try {
+    // Reset all guests' checked_in status to 0
+    await c.env.DB
+      .prepare('UPDATE guests SET checked_in = 0')
+      .run();
+
+    // Delete all scan logs
+    await c.env.DB
+      .prepare('DELETE FROM scan_logs')
+      .run();
+
+    // Delete all workshop check-ins
+    await c.env.DB
+      .prepare('DELETE FROM workshop_checkins')
+      .run();
+
+    return c.json({ 
+      success: true, 
+      message: 'All check-in records have been cleared' 
+    });
+  } catch (error) {
+    console.error('Clear check-ins error:', error);
+    return c.json({ error: 'Failed to clear check-in records' }, 500);
+  }
+});
+
 // Export for Cloudflare Workers
 export default app;
 
