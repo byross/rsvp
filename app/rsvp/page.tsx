@@ -265,8 +265,8 @@ function RSVPContent() {
             {/* QR Code */}
             <div className="flex flex-col items-center gap-3">
               <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
-              <p className="text-sm text-slate-500">請保存此 QR Code</p>
-              <p className="text-sm text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
+              <p className="text-base text-slate-500">請保存此 QR Code</p>
+              <p className="text-base text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
             </div>
 
             {/* Parking Information */}
