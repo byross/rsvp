@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiRequest, API_ENDPOINTS, getApiUrl } from '@/lib/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -256,7 +257,14 @@ function RSVPContent() {
         <Card className="w-full max-w-2xl shadow-lg">
           <CardHeader className="space-y-4">
             <div className="w-full mb-4">
-              <img src="/images/logo.jpeg" alt="活動 Logo" className="w-full h-auto object-cover rounded-lg" />
+              <Image
+                src="/images/logo.jpeg"
+                alt="活動 Logo"
+                width={1600}
+                height={639}
+                className="w-full h-auto object-cover rounded-lg"
+                priority
+              />
             </div>
             <CardTitle className="text-3xl font-bold text-center">✓ RSVP 確認成功！</CardTitle>
             <CardDescription className="text-center">感謝您的確認！以下是您的出席資料摘要：</CardDescription>
@@ -264,7 +272,14 @@ function RSVPContent() {
           <CardContent className="space-y-6">
             {/* QR Code */}
             <div className="flex flex-col items-center gap-3">
-              <img src={qrUrl} alt="入場 QR Code" className="w-56 h-56 rounded-lg border-4" style={{ borderColor }} />
+              <Image
+                src={qrUrl}
+                alt="入場 QR Code"
+                width={224}
+                height={224}
+                className="w-56 h-56 rounded-lg border-4"
+                style={{ borderColor }}
+              />
               <p className="text-base text-slate-500">請保存此 QR Code</p>
               <p className="text-base text-slate-500">活動當日請出示此 QR Code 以便簽到</p>
             </div>
@@ -344,10 +359,13 @@ function RSVPContent() {
         <CardHeader className="space-y-4">
           {/* Logo */}
           <div className="w-full mb-4">
-            <img 
+            <Image 
               src="/images/logo.jpeg" 
               alt="活動 Logo" 
+              width={1600}
+              height={639}
               className="w-full h-auto object-cover rounded-lg"
+              priority
             />
           </div>
           

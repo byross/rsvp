@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -124,10 +125,13 @@ export default function CheckinPage() {
         <CardHeader className="space-y-4">
           {/* Logo */}
           <div className="w-full mb-4">
-            <img 
+            <Image 
               src="/images/logo.jpeg" 
               alt="活動 Logo" 
+              width={1600}
+              height={639}
               className="w-full h-auto object-cover rounded-lg"
+              priority
             />
           </div>
           

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
+import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,8 @@ interface WorkshopGuestsResponse {
   guests: WorkshopGuest[];
 }
 
+const WORKSHOP_TIMES = ['1630', '1700', '1730', '1800'] as const;
+
 function LeatherWorkshopCheckinContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -52,18 +55,16 @@ function LeatherWorkshopCheckinContent() {
   const inputRef = useRef<HTMLInputElement>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const times = ['1630', '1700', '1730', '1800'];
-  
   // 從 URL 參數獲取默認時段，如果沒有則使用第一個時段
   const getDefaultTime = () => {
     const p = searchParams.get('p');
     if (p) {
       const index = parseInt(p) - 1;
-      if (index >= 0 && index < times.length) {
-        return times[index];
+      if (index >= 0 && index < WORKSHOP_TIMES.length) {
+        return WORKSHOP_TIMES[index];
       }
     }
-    return times[0];
+    return WORKSHOP_TIMES[0];
   };
   
   const [activeTime, setActiveTime] = useState(getDefaultTime());
@@ -71,8 +72,9 @@ function LeatherWorkshopCheckinContent() {
   // 處理 Tab 切換，同時更新 URL
   const handleTabChange = (value: string) => {
     setActiveTime(value);
-    const index = times.indexOf(value) + 1;
-    router.push(`/workshop/leather?p=${index}`);
+    const index = WORKSHOP_TIMES.indexOf(value as (typeof WORKSHOP_TIMES)[number]);
+    const tabIndex = index >= 0 ? index + 1 : 1;
+    router.push(`/workshop/leather?p=${tabIndex}`);
   };
 
   // 自動聚焦到輸入框
@@ -96,7 +98,7 @@ function LeatherWorkshopCheckinContent() {
     const newGuests: {[key: string]: WorkshopGuest[]} = {};
     
     try {
-      for (const time of times) {
+      for (const time of WORKSHOP_TIMES) {
         // 載入嘉賓列表（選擇了該時段的所有嘉賓，包含簽到狀態）
         const guestsResponse = await apiRequest(API_ENDPOINTS.WORKSHOP_GUESTS('leather', time), {
           method: 'GET',
@@ -120,7 +122,7 @@ function LeatherWorkshopCheckinContent() {
   // 頁面載入時獲取簽到列表（只執行一次）
   useEffect(() => {
     loadCheckins();
-  }, []);
+  }, [loadCheckins]);
 
   const handleCheckIn = async (tokenValue: string) => {
     if (!tokenValue.trim() || isProcessing) {
@@ -251,10 +253,13 @@ function LeatherWorkshopCheckinContent() {
         <CardHeader className="space-y-4">
           {/* Logo */}
           <div className="w-full mb-4">
-            <img 
+            <Image 
               src="/images/logo.jpeg" 
               alt="活動 Logo" 
+              width={1600}
+              height={639}
               className="w-full h-auto object-cover rounded-lg"
+              priority
             />
           </div>
           
@@ -425,14 +430,14 @@ function LeatherWorkshopCheckinContent() {
 
             <Tabs value={activeTime} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                {times.map((time) => (
+                {WORKSHOP_TIMES.map((time) => (
                   <TabsTrigger key={time} value={time}>
                     {time.slice(0, 2)}:{time.slice(2)}
                   </TabsTrigger>
                 ))}
               </TabsList>
               
-              {times.map((time) => (
+              {WORKSHOP_TIMES.map((time) => (
                 <TabsContent key={time} value={time} className="space-y-4">
                   <div className="flex items-center justify-end space-x-2">
                     <Badge variant="outline">
