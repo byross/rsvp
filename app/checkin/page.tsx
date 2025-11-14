@@ -57,7 +57,12 @@ export default function CheckinPage() {
       const result = await response.json();
 
       if (response.ok) {
-        setGuest(result.guest);
+        // 確保 guest_category 有預設值
+        const guestData = {
+          ...result.guest,
+          guest_category: result.guest.guest_category || 'netcraft'
+        };
+        setGuest(guestData);
         setSuccess('簽到成功！');
         
         // 顯示工作坊券提示
@@ -68,7 +73,12 @@ export default function CheckinPage() {
         }
       } else {
         if (result.status === 'duplicate') {
-          setGuest(result.guest);
+          // 確保 guest_category 有預設值
+          const guestData = {
+            ...result.guest,
+            guest_category: result.guest.guest_category || 'netcraft'
+          };
+          setGuest(guestData);
           setError('該嘉賓已經簽到過了');
         } else {
           setError(result.error || '簽到失敗');
@@ -179,15 +189,15 @@ export default function CheckinPage() {
                 <div className="flex items-center justify-center mb-3">
                   <Badge 
                     className={
-                      guest.guest_category === 'vip' ? 'bg-orange-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
-                      guest.guest_category === 'guest' ? 'bg-purple-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
-                      guest.guest_category === 'regular' ? 'bg-green-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      (guest.guest_category === 'vip' || guest.guest_category === 'VIP') ? 'bg-orange-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      (guest.guest_category === 'guest' || guest.guest_category === 'Guest') ? 'bg-purple-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      (guest.guest_category === 'regular' || guest.guest_category === 'Regular') ? 'bg-green-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
                       'bg-blue-600 text-white text-xl font-bold px-6 py-3 shadow-lg'
                     }
                   >
-                    {guest.guest_category === 'vip' ? 'VIP' :
-                     guest.guest_category === 'guest' ? '嘉賓' :
-                     guest.guest_category === 'regular' ? '普通嘉賓' :
+                    {(guest.guest_category === 'vip' || guest.guest_category === 'VIP') ? 'VIP' :
+                     (guest.guest_category === 'guest' || guest.guest_category === 'Guest') ? '嘉賓' :
+                     (guest.guest_category === 'regular' || guest.guest_category === 'Regular') ? '普通嘉賓' :
                      'NetCraft 同事'}
                   </Badge>
                 </div>
