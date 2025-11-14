@@ -601,6 +601,31 @@ export default function GuestsPage() {
     return `${typeName} ${timeFormatted}`;
   };
 
+  const formatDateTime = (dateTimeString: string | null | undefined) => {
+    if (!dateTimeString) return '';
+    // SQLite datetime 格式通常是 "YYYY-MM-DD HH:MM:SS" (UTC)
+    // Cloudflare D1 存儲的是 UTC 時間，需要明確標記為 UTC 然後轉換為澳門時區
+    let utcDate: Date;
+    if (dateTimeString.includes('Z') || dateTimeString.includes('+') || dateTimeString.includes('-', 10)) {
+      // 已經有時區信息
+      utcDate = new Date(dateTimeString);
+    } else {
+      // 沒有時區信息，假設是 UTC（SQLite datetime 格式）
+      utcDate = new Date(dateTimeString.replace(' ', 'T') + 'Z');
+    }
+    
+    // 轉換為澳門時區 (UTC+8)
+    return utcDate.toLocaleString('zh-TW', {
+      timeZone: 'Asia/Macau',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  };
+
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -1026,12 +1051,7 @@ export default function GuestsPage() {
                               <Badge className="bg-blue-600">已簽到</Badge>
                               {guest.checked_in_at && (
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(guest.checked_in_at).toLocaleString('zh-TW', {
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {formatDateTime(guest.checked_in_at)}
                                 </span>
                               )}
                             </div>
