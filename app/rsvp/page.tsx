@@ -26,7 +26,7 @@ interface Guest {
   vegetarian?: number;
   workshop_type?: 'leather' | 'perfume' | null;
   workshop_time?: string | null;
-  guest_category?: 'netcraft' | 'vip' | 'regular';
+  guest_category?: 'netcraft' | 'vip' | 'guest' | 'regular';
 }
 
 interface FormData {
@@ -251,7 +251,11 @@ function RSVPContent() {
     const apiBase = getApiUrl();
     const qrUrl = `${apiBase}/qr/qr-${guest.id}.png`;
     const timeText = guest.workshop_time ? `${guest.workshop_time.slice(0,2)}:${guest.workshop_time.slice(2)}` : '';
-    const borderColor = guest.guest_category === 'vip' ? '#d97706' : guest.guest_category === 'regular' ? '#16a34a' : '#0A599C';
+    const borderColor = 
+      guest.guest_category === 'vip' ? '#d97706' : 
+      guest.guest_category === 'guest' ? '#9333ea' : 
+      guest.guest_category === 'regular' ? '#16a34a' : 
+      '#0A599C'; // netcraft default
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100">
         <Card className="w-full max-w-2xl shadow-lg">

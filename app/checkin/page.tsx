@@ -16,6 +16,7 @@ interface Guest {
   phone?: string;
   invite_type: 'named' | 'company';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
+  guest_category?: 'netcraft' | 'vip' | 'guest' | 'regular';
   dinner: boolean;
   cocktail: boolean;
   vegetarian?: boolean;
@@ -204,6 +205,23 @@ export default function CheckinPage() {
                   >
                     {guest.rsvp_status === 'confirmed' ? '已確認' : 
                      guest.rsvp_status === 'declined' ? '已拒絕' : '待回覆'}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600">嘉賓類型</p>
+                  <Badge 
+                    className={
+                      guest.guest_category === 'vip' ? 'bg-orange-600' :
+                      guest.guest_category === 'guest' ? 'bg-purple-600' :
+                      guest.guest_category === 'regular' ? 'bg-green-600' :
+                      'bg-blue-600'
+                    }
+                  >
+                    {guest.guest_category === 'vip' ? 'VIP' :
+                     guest.guest_category === 'guest' ? '嘉賓' :
+                     guest.guest_category === 'regular' ? '普通嘉賓' :
+                     'NetCraft 同事'}
                   </Badge>
                 </div>
                 

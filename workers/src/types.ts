@@ -5,7 +5,7 @@ export type RsvpStatus = 'pending' | 'confirmed' | 'declined';
 export type WorkshopType = 'leather' | 'perfume' | null;
 export type WorkshopTime = '1630' | '1700' | '1730' | '1800' | null;
 export type ScanStatus = 'success' | 'duplicate' | 'error';
-export type GuestCategory = 'netcraft' | 'vip' | 'regular';
+export type GuestCategory = 'netcraft' | 'vip' | 'guest' | 'regular';
 
 export interface Guest {
   id: string;

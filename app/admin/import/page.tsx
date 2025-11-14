@@ -62,7 +62,8 @@ export default function ImportPage() {
   const exampleCSV = `name,email,company,phone,invite_type,guest_category
 張三,zhang@example.com,ABC公司,0912345678,named,netcraft
 李四,li@example.com,XYZ公司,0987654321,company,vip
-王五,wang@example.com,,,named,regular`;
+王五,wang@example.com,,,named,guest
+趙六,zhao@example.com,,,named,regular`;
 
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-slate-50 to-slate-100">
@@ -104,7 +105,7 @@ export default function ImportPage() {
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li><code>company</code> - 公司名稱</li>
                 <li><code>phone</code> - 電話號碼</li>
-                <li><code>guest_category</code> - 嘉賓分類（<code>netcraft</code>、<code>vip</code>、<code>regular</code>，預設：<code>netcraft</code>）</li>
+                <li><code>guest_category</code> - 嘉賓分類（<code>netcraft</code>、<code>vip</code>、<code>guest</code>、<code>regular</code>，預設：<code>netcraft</code>）</li>
               </ul>
             </div>
             <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">

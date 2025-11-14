@@ -28,7 +28,7 @@ interface Guest {
   email: string;
   phone: string | null;
   invite_type: 'named' | 'company';
-  guest_category: 'netcraft' | 'vip' | 'regular';
+  guest_category: 'netcraft' | 'vip' | 'guest' | 'regular';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: number;
   cocktail: number;
@@ -49,7 +49,7 @@ interface GuestFormData {
   company: string;
   phone: string;
   invite_type: 'named' | 'company';
-  guest_category: 'netcraft' | 'vip' | 'regular';
+  guest_category: 'netcraft' | 'vip' | 'guest' | 'regular';
   rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: boolean;
   cocktail: boolean;
@@ -560,6 +560,8 @@ export default function GuestsPage() {
         return <Badge className="bg-blue-600">NetCraft 同事</Badge>;
       case 'vip':
         return <Badge className="bg-orange-600">VIP</Badge>;
+      case 'guest':
+        return <Badge className="bg-purple-600">嘉賓</Badge>;
       case 'regular':
         return <Badge className="bg-green-600">普通嘉賓</Badge>;
       default:
@@ -685,13 +687,14 @@ export default function GuestsPage() {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="guest_category" className="text-right">嘉賓分類 *</Label>
-                    <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'regular') => setFormData({...formData, guest_category: value})}>
+                    <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'guest' | 'regular') => setFormData({...formData, guest_category: value})}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="netcraft">NetCraft 同事</SelectItem>
                         <SelectItem value="vip">VIP</SelectItem>
+                        <SelectItem value="guest">嘉賓</SelectItem>
                         <SelectItem value="regular">普通嘉賓</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1130,13 +1133,14 @@ export default function GuestsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-guest-category">嘉賓分類 *</Label>
-                <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'regular') => setFormData({...formData, guest_category: value})}>
+                <Select value={formData.guest_category} onValueChange={(value: 'netcraft' | 'vip' | 'guest' | 'regular') => setFormData({...formData, guest_category: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="netcraft">NetCraft 同事</SelectItem>
                     <SelectItem value="vip">VIP</SelectItem>
+                    <SelectItem value="guest">嘉賓</SelectItem>
                     <SelectItem value="regular">普通嘉賓</SelectItem>
                   </SelectContent>
                 </Select>

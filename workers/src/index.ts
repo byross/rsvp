@@ -909,8 +909,8 @@ app.post('/api/admin/import', requireSimpleAuth, async (c) => {
 
         // Validate guest_category if provided
         const category = guest_category || 'netcraft';
-        if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
-          errors.push(`第 ${i + 1} 行: guest_category 必須是 netcraft, vip 或 regular`);
+        if (category !== 'netcraft' && category !== 'vip' && category !== 'guest' && category !== 'regular') {
+          errors.push(`第 ${i + 1} 行: guest_category 必須是 netcraft, vip, guest 或 regular`);
           failed++;
           continue;
         }
@@ -1202,8 +1202,8 @@ app.post('/api/admin/guests', requireSimpleAuth, async (c) => {
 
     // Validate guest_category
     const category = guest_category || 'netcraft';
-    if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
-      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, or regular' }, 400);
+    if (category !== 'netcraft' && category !== 'vip' && category !== 'guest' && category !== 'regular') {
+      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, guest, or regular' }, 400);
     }
 
     // Check if email already exists
@@ -1265,8 +1265,8 @@ app.put('/api/admin/guests/:id', requireSimpleAuth, async (c) => {
 
     // Validate guest_category
     const category = guest_category || 'netcraft';
-    if (category !== 'netcraft' && category !== 'vip' && category !== 'regular') {
-      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, or regular' }, 400);
+    if (category !== 'netcraft' && category !== 'vip' && category !== 'guest' && category !== 'regular') {
+      return c.json({ error: 'Invalid guest_category. Must be netcraft, vip, guest, or regular' }, 400);
     }
 
     // Check if email already exists for another guest

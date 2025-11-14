@@ -34,6 +34,8 @@ function getQRCodeBorderColor(category: GuestCategory): string {
       return '#0A599C'; // NetCraft Blue
     case 'vip':
       return '#d97706'; // Gold/Orange
+    case 'guest':
+      return '#9333ea'; // Purple
     case 'regular':
       return '#16a34a'; // Green
     default:
