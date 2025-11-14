@@ -1,7 +1,11 @@
 -- Update guest_category CHECK constraint to include 'guest' type
 -- SQLite doesn't support modifying CHECK constraints directly, so we need to rebuild the table
+-- Note: We need to disable foreign key checks temporarily to rebuild the table
 
--- Step 1: Create new table with updated CHECK constraint
+-- Step 1: Disable foreign key checks
+PRAGMA foreign_keys = OFF;
+
+-- Step 2: Create new table with updated CHECK constraint
 CREATE TABLE guests_new (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -26,7 +30,7 @@ CREATE TABLE guests_new (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Step 2: Copy all data from old table to new table
+-- Step 3: Copy all data from old table to new table
 INSERT INTO guests_new (
   id, name, company, email, phone, token, invite_type, rsvp_status, guest_category,
   dinner, cocktail, vegetarian, workshop_type, workshop_time, seat_no, checked_in,
@@ -38,16 +42,19 @@ SELECT
   COALESCE(invitation_sent, 0) as invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at
 FROM guests;
 
--- Step 3: Drop old table
+-- Step 4: Drop old table
 DROP TABLE guests;
 
--- Step 4: Rename new table to original name
+-- Step 5: Rename new table to original name
 ALTER TABLE guests_new RENAME TO guests;
 
--- Step 5: Recreate indexes
+-- Step 6: Recreate indexes
 CREATE INDEX IF NOT EXISTS idx_guests_token ON guests(token);
 CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email);
 CREATE INDEX IF NOT EXISTS idx_guests_rsvp_status ON guests(rsvp_status);
 CREATE INDEX IF NOT EXISTS idx_guests_phone ON guests(phone);
 CREATE INDEX IF NOT EXISTS idx_guests_guest_category ON guests(guest_category);
+
+-- Step 7: Re-enable foreign key checks
+PRAGMA foreign_keys = ON;
 
