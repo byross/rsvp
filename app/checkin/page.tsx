@@ -175,7 +175,24 @@ export default function CheckinPage() {
           {/* 嘉賓資訊顯示 */}
           {guest && (
             <div className="p-6 bg-gray-50 rounded-lg border">
-              <h3 className="text-xl font-semibold mb-4 text-center">嘉賓資訊</h3>
+              <div className="mb-4">
+                <div className="flex items-center justify-center mb-3">
+                  <Badge 
+                    className={
+                      guest.guest_category === 'vip' ? 'bg-orange-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      guest.guest_category === 'guest' ? 'bg-purple-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      guest.guest_category === 'regular' ? 'bg-green-600 text-white text-xl font-bold px-6 py-3 shadow-lg' :
+                      'bg-blue-600 text-white text-xl font-bold px-6 py-3 shadow-lg'
+                    }
+                  >
+                    {guest.guest_category === 'vip' ? 'VIP' :
+                     guest.guest_category === 'guest' ? '嘉賓' :
+                     guest.guest_category === 'regular' ? '普通嘉賓' :
+                     'NetCraft 同事'}
+                  </Badge>
+                </div>
+                <h3 className="text-xl font-semibold text-center">嘉賓資訊</h3>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
