@@ -36,6 +36,7 @@ interface Guest {
   workshop_type: string | null;
   workshop_time: string | null;
   checked_in: number;
+  checked_in_at?: string | null;
   invitation_sent?: number;
   invitation_sent_at?: string | null;
   invitation_message_id?: string | null;
@@ -967,7 +968,19 @@ export default function GuestsPage() {
                         </TableCell>
                         <TableCell>
                           {guest.checked_in ? (
-                            <Badge className="bg-blue-600">已簽到</Badge>
+                            <div className="flex flex-col gap-1">
+                              <Badge className="bg-blue-600">已簽到</Badge>
+                              {guest.checked_in_at && (
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(guest.checked_in_at).toLocaleString('zh-TW', {
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}

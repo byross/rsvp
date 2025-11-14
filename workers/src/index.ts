@@ -833,7 +833,22 @@ app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
   
   try {
     const guests = await c.env.DB
-      .prepare('SELECT id, name, email, company, phone, invite_type, token, rsvp_status, guest_category, dinner, cocktail, vegetarian, workshop_type, workshop_time, checked_in, invitation_sent, invitation_sent_at, invitation_message_id, created_at, updated_at FROM guests ORDER BY created_at DESC')
+      .prepare(`
+        SELECT 
+          g.id, g.name, g.email, g.company, g.phone, g.invite_type, g.token, 
+          g.rsvp_status, g.guest_category, g.dinner, g.cocktail, g.vegetarian, 
+          g.workshop_type, g.workshop_time, g.checked_in, 
+          g.invitation_sent, g.invitation_sent_at, g.invitation_message_id, 
+          g.created_at, g.updated_at,
+          MAX(sl.scan_time) as checked_in_at
+        FROM guests g
+        LEFT JOIN scan_logs sl ON g.id = sl.guest_id AND sl.status = 'success'
+        GROUP BY g.id
+        ORDER BY 
+          g.checked_in DESC,
+          checked_in_at DESC,
+          g.created_at DESC
+      `)
       .all();
 
     return c.json(guests.results);
