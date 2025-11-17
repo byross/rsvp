@@ -11,7 +11,7 @@
 
 ### 2. 生產環境
 - **前端**: `https://rsvp.momini.app`
-- **後端 API**: `https://rsvp-api.byross-tech.workers.dev`
+- **後端 API**: `https://rsvp-api.momini.app`
 - **環境變量**: `.env.production`
 
 ## 環境變量設置
@@ -23,7 +23,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8787
 
 ### `.env.production` (生產環境)
 ```bash
-NEXT_PUBLIC_API_URL=https://rsvp-api.byross-tech.workers.dev
+NEXT_PUBLIC_API_URL=https://rsvp-api.momini.app
 ```
 
 ## 部署命令
@@ -90,7 +90,7 @@ npx serve out
    env: {
      NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 
        (process.env.NODE_ENV === 'production' 
-         ? 'https://rsvp-api.byross-tech.workers.dev' 
+         ? 'https://rsvp-api.momini.app' 
          : 'http://localhost:8787'),
    }
    ```
@@ -121,7 +121,7 @@ npm run build:prod
 ### Q: 如何驗證當前使用的 API URL？
 A: 打開瀏覽器 Console，應該會看到：
 ```
-🌐 Using API URL: https://rsvp-api.byross-tech.workers.dev
+🌐 Using API URL: https://rsvp-api.momini.app
 ```
 
 ### Q: 本地開發時如何測試生產配置？
@@ -183,5 +183,6 @@ Next.js 的靜態導出 (`output: "export"`) 在**構建時**就確定了所有�
 - **2025-10-21**: 添加構建驗證腳本，確保 API URL 正確
 - **2025-10-21**: 更新 `next.config.ts`，添加明確的 fallback 配置
 - **2025-10-21**: 簡化 `lib/config.ts`，移除不可靠的運行時判斷
+- **2025-01-XX**: 更新 API URL 為自定義域名 `https://rsvp-api.momini.app`，解決部分地區無法訪問 `workers.dev` 的問題
 
 

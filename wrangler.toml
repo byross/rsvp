@@ -30,7 +30,7 @@ EVENT_NAME = "天網資訊科技（澳門）有限公司三十週年晚宴"
 EVENT_DATE = "2025年12月17日（星期三）"
 EVENT_VENUE = "澳門銀河國際會議中心地下宴會廳"
 # R2 Worker URL (QR codes will be served through Worker)
-R2_PUBLIC_URL = "https://rsvp-api.byross-tech.workers.dev"
+R2_PUBLIC_URL = "https://rsvp-api.momini.app"
 # CORS settings for Next.js frontend
 ALLOWED_ORIGIN = "https://rsvp.momini.app"
 FRONTEND_URL = "https://rsvp.momini.app"

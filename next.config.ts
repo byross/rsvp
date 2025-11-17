@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 
       (process.env.NODE_ENV === 'production' 
-        ? 'https://rsvp-api.byross-tech.workers.dev' 
+        ? 'https://rsvp-api.momini.app' 
         : 'http://localhost:8787'),
     NEXT_PUBLIC_EVENT_NAME: process.env.NEXT_PUBLIC_EVENT_NAME || process.env.EVENT_NAME || '天網資訊科技（澳門）有限公司三十週年晚宴',
     NEXT_PUBLIC_EVENT_DATE: process.env.NEXT_PUBLIC_EVENT_DATE || process.env.EVENT_DATE || '2025年12月17日（星期三）',

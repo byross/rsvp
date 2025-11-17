@@ -7,7 +7,7 @@ echo "🚀 開始生產環境構建..."
 
 # 設置生產環境變量
 export NODE_ENV=production
-export NEXT_PUBLIC_API_URL=https://rsvp-api.byross-tech.workers.dev
+export NEXT_PUBLIC_API_URL=https://rsvp-api.momini.app
 export NEXT_PUBLIC_EVENT_NAME="天網資訊科技（澳門）有限公司三十週年晚宴"
 export NEXT_PUBLIC_EVENT_DATE="2025年12月17日（星期三）"
 export NEXT_PUBLIC_EVENT_VENUE="澳門銀河國際會議中心地下宴會廳"
@@ -31,7 +31,7 @@ if grep -r "localhost:8787" out/ > /dev/null; then
   exit 1
 fi
 
-if grep -r "rsvp-api.byross-tech.workers.dev" out/ > /dev/null; then
+if grep -r "rsvp-api.momini.app" out/ > /dev/null; then
   echo "✅ 正確：使用生產環境 API URL"
 else
   echo "⚠️  警告：未檢測到生產環境 API URL"
