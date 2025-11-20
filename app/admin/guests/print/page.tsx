@@ -141,7 +141,7 @@ function PrintPageContent() {
               </tr>
             </thead>
             <tbody>
-              {guests.map((guest, index) => (
+              {guests.map((guest) => (
                 <tr key={guest.id} className="hover:bg-gray-50 print:hover:bg-transparent">
                   <td className="border border-gray-300 px-2 py-1">{guest.name}</td>
                   <td className="border border-gray-300 px-2 py-1">{guest.company || '-'}</td>
