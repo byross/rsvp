@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Plus, Edit, Trash2, Save, Mail, MailCheck, ExternalLink, Copy, Eye, EyeOff, CheckCircle, Printer } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 
 interface Guest {
@@ -101,6 +101,12 @@ export default function GuestsPage() {
   const [showClearCheckinsDialog, setShowClearCheckinsDialog] = useState(false);
   const [clearingCheckins, setClearingCheckins] = useState(false);
 
+  // Print dialog state
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printCategory, setPrintCategory] = useState<string>('all');
+  const [printCompany, setPrintCompany] = useState<string>('all');
+  const [availableCompanies, setAvailableCompanies] = useState<string[]>([]);
+
   useEffect(() => {
     fetchGuests();
   }, []);
@@ -112,12 +118,28 @@ export default function GuestsPage() {
       if (response.ok) {
         const data = await response.json();
         setGuests(data);
+        // Extract unique companies
+        const companies = Array.from(new Set(data.map((g: Guest) => g.company).filter(Boolean))) as string[];
+        setAvailableCompanies(companies.sort());
       }
     } catch (error) {
       console.error('Failed to fetch guests:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrint = () => {
+    const params = new URLSearchParams();
+    if (printCategory && printCategory !== 'all') params.append('category', printCategory);
+    if (printCompany && printCompany !== 'all') params.append('company', printCompany);
+    
+    const url = `/admin/guests/print${params.toString() ? '?' + params.toString() : ''}`;
+    window.open(url, '_blank');
+    setShowPrintDialog(false);
+    // Reset filters after printing
+    setPrintCategory('all');
+    setPrintCompany('all');
   };
 
   const exportCSV = async () => {
@@ -667,6 +689,10 @@ export default function GuestsPage() {
               <Download className="w-4 h-4 mr-2" />
               {exporting ? '匯出中...' : '匯出 CSV'}
             </Button>
+            <Button variant="outline" onClick={() => setShowPrintDialog(true)}>
+              <Printer className="w-4 h-4 mr-2" />
+              批量打印
+            </Button>
             <Dialog open={showClearCheckinsDialog} onOpenChange={setShowClearCheckinsDialog}>
               <DialogTrigger asChild>
                 <Button variant="destructive" disabled={clearingCheckins}>
@@ -693,6 +719,61 @@ export default function GuestsPage() {
                   </Button>
                   <Button variant="destructive" onClick={clearCheckins} disabled={clearingCheckins}>
                     {clearingCheckins ? '清空中...' : '確認清空'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>批量打印嘉賓資料</DialogTitle>
+                  <DialogDescription>
+                    選擇篩選條件來打印嘉賓資料表。可以按嘉賓分類或公司篩選，也可以不選擇篩選條件打印全部。
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="print-category" className="text-right">嘉賓分類</Label>
+                    <Select value={printCategory} onValueChange={setPrintCategory}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="全部" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">全部</SelectItem>
+                        <SelectItem value="netcraft">NetCraft</SelectItem>
+                        <SelectItem value="vip">VIP</SelectItem>
+                        <SelectItem value="guest">嘉賓</SelectItem>
+                        <SelectItem value="regular">普通</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="print-company" className="text-right">公司</Label>
+                    <Select value={printCompany} onValueChange={setPrintCompany}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="全部" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">全部</SelectItem>
+                        {availableCompanies.map((company) => (
+                          <SelectItem key={company} value={company}>
+                            {company}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="text-sm text-muted-foreground pt-2">
+                    <p>提示：選擇篩選條件後，將在新視窗打開打印頁面。您可以在瀏覽器中直接打印。</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowPrintDialog(false)}>
+                    取消
+                  </Button>
+                  <Button onClick={handlePrint}>
+                    <Printer className="w-4 h-4 mr-2" />
+                    打開打印頁面
                   </Button>
                 </DialogFooter>
               </DialogContent>

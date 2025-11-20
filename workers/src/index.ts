@@ -830,10 +830,26 @@ app.get('/api/admin/guests/search', requireSimpleAuth, async (c) => {
 
 // List all guests (admin only)
 app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
-  
   try {
-    const guests = await c.env.DB
-      .prepare(`
+    const category = c.req.query('category');
+    const company = c.req.query('company');
+    
+    // Build WHERE clause based on filters
+    let whereClause = '';
+    const bindParams: any[] = [];
+    
+    if (category && company) {
+      whereClause = 'WHERE g.guest_category = ? AND g.company = ?';
+      bindParams.push(category, company);
+    } else if (category) {
+      whereClause = 'WHERE g.guest_category = ?';
+      bindParams.push(category);
+    } else if (company) {
+      whereClause = 'WHERE g.company = ?';
+      bindParams.push(company);
+    }
+    
+    const query = `
         SELECT 
           g.id, g.name, g.email, g.company, g.phone, g.invite_type, g.token, 
           g.rsvp_status, g.guest_category, g.dinner, g.cocktail, g.vegetarian, 
@@ -843,13 +859,17 @@ app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
           MAX(sl.scan_time) as checked_in_at
         FROM guests g
         LEFT JOIN scan_logs sl ON g.id = sl.guest_id AND sl.status = 'success'
+        ${whereClause}
         GROUP BY g.id
         ORDER BY 
           g.checked_in DESC,
           checked_in_at DESC,
           g.created_at DESC
-      `)
-      .all();
+      `;
+    
+    const guests = whereClause 
+      ? await c.env.DB.prepare(query).bind(...bindParams).all()
+      : await c.env.DB.prepare(query).all();
 
     return c.json(guests.results);
   } catch (error) {
