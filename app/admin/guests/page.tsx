@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,14 +107,18 @@ export default function GuestsPage() {
   const [printCompany, setPrintCompany] = useState<string>('all');
   const [availableCompanies, setAvailableCompanies] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchGuests();
-  }, []);
+  // Filter states
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet('/api/admin/guests');
+      const params = new URLSearchParams();
+      if (filterStatus !== 'all') {
+        params.append('rsvp_status', filterStatus);
+      }
+      const url = `/api/admin/guests${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await apiGet(url);
       if (response.ok) {
         const data = await response.json();
         setGuests(data);
@@ -127,7 +131,11 @@ export default function GuestsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    fetchGuests();
+  }, [fetchGuests]);
 
   const handlePrint = () => {
     const params = new URLSearchParams();
@@ -1044,10 +1052,28 @@ export default function GuestsPage() {
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle>所有嘉賓</CardTitle>
-            <CardDescription>
-              查看和管理所有邀請嘉賓的 RSVP 狀態，支援編輯和刪除操作
-            </CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>所有嘉賓</CardTitle>
+                <CardDescription>
+                  查看和管理所有邀請嘉賓的 RSVP 狀態，支援編輯和刪除操作
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="filter-status" className="text-sm">狀態篩選：</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger id="filter-status" className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    <SelectItem value="pending">待回覆</SelectItem>
+                    <SelectItem value="confirmed">已確認</SelectItem>
+                    <SelectItem value="declined">已婉拒</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (

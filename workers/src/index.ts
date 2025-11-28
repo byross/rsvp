@@ -833,20 +833,28 @@ app.get('/api/admin/guests', requireSimpleAuth, async (c) => {
   try {
     const category = c.req.query('category');
     const company = c.req.query('company');
+    const rsvpStatus = c.req.query('rsvp_status');
     
     // Build WHERE clause based on filters
     let whereClause = '';
     const bindParams: any[] = [];
+    const conditions: string[] = [];
     
-    if (category && company) {
-      whereClause = 'WHERE g.guest_category = ? AND g.company = ?';
-      bindParams.push(category, company);
-    } else if (category) {
-      whereClause = 'WHERE g.guest_category = ?';
+    if (category) {
+      conditions.push('g.guest_category = ?');
       bindParams.push(category);
-    } else if (company) {
-      whereClause = 'WHERE g.company = ?';
+    }
+    if (company) {
+      conditions.push('g.company = ?');
       bindParams.push(company);
+    }
+    if (rsvpStatus) {
+      conditions.push('g.rsvp_status = ?');
+      bindParams.push(rsvpStatus);
+    }
+    
+    if (conditions.length > 0) {
+      whereClause = 'WHERE ' + conditions.join(' AND ');
     }
     
     const query = `
