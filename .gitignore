@@ -54,4 +54,7 @@ wrangler.toml.backup
 # D1 local database
 .wrangler/state/
 
+# Database backups
+/backups/
+
 
