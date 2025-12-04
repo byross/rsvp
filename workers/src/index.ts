@@ -584,7 +584,7 @@ app.get('/api/workshop/availability', async (c) => {
 // Workshop check-in endpoints
 app.post('/api/workshop/leather/checkin', async (c) => {
   const body = await c.req.json();
-  let { token } = body as { token: string };
+  let { token, workshop_time } = body as { token: string; workshop_time?: string };
 
   if (!token) {
     return c.json({ error: 'Token is required' }, 400);
@@ -610,10 +610,45 @@ app.post('/api/workshop/leather/checkin', async (c) => {
       return c.json({ error: 'Invalid token' }, 404);
     }
 
-    // Check if guest has confirmed leather workshop
-    if (guest.workshop_type !== 'leather' || !guest.workshop_time) {
+    // 記錄是否自動報名（在更新之前）
+    const autoRegistered = !guest.workshop_type && !!workshop_time;
+
+    // 如果嘉賓沒有報名任何工作坊，且提供了時段，則自動報名
+    if (!guest.workshop_type && workshop_time) {
+      // 驗證時段是否有效
+      const validTimes = ['1630', '1700', '1730', '1800'];
+      if (!validTimes.includes(workshop_time)) {
+        return c.json({ error: 'Invalid workshop time' }, 400);
+      }
+
+      // 自動報名皮革工作坊
+      await c.env.DB
+        .prepare('UPDATE guests SET workshop_type = ?, workshop_time = ?, updated_at = datetime("now") WHERE id = ?')
+        .bind('leather', workshop_time, guest.id)
+        .run();
+
+      // 更新 guest 對象
+      guest.workshop_type = 'leather';
+      guest.workshop_time = workshop_time;
+    }
+
+    // 如果嘉賓已報名其他工作坊，則返回錯誤
+    if (guest.workshop_type && guest.workshop_type !== 'leather') {
       return c.json({ 
-        error: '該嘉賓未選擇皮革工作坊',
+        error: `該嘉賓已選擇${guest.workshop_type === 'perfume' ? '調香' : '其他'}工作坊，請前往對應工作坊簽到`,
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 400);
+    }
+
+    // 如果嘉賓沒有報名且沒有提供時段，則返回錯誤
+    if (!guest.workshop_type || !guest.workshop_time) {
+      return c.json({ 
+        error: '該嘉賓未選擇皮革工作坊，且未提供時段參數',
         guest: {
           id: guest.id,
           name: guest.name,
@@ -653,6 +688,7 @@ app.post('/api/workshop/leather/checkin', async (c) => {
 
     return c.json({ 
       status: 'success',
+      auto_registered: autoRegistered, // 標記是否自動報名
       guest: {
         id: guest.id,
         name: guest.name,
@@ -668,7 +704,7 @@ app.post('/api/workshop/leather/checkin', async (c) => {
 
 app.post('/api/workshop/perfume/checkin', async (c) => {
   const body = await c.req.json();
-  let { token } = body as { token: string };
+  let { token, workshop_time } = body as { token: string; workshop_time?: string };
 
   if (!token) {
     return c.json({ error: 'Token is required' }, 400);
@@ -694,10 +730,45 @@ app.post('/api/workshop/perfume/checkin', async (c) => {
       return c.json({ error: 'Invalid token' }, 404);
     }
 
-    // Check if guest has confirmed perfume workshop
-    if (guest.workshop_type !== 'perfume' || !guest.workshop_time) {
+    // 記錄是否自動報名（在更新之前）
+    const autoRegistered = !guest.workshop_type && !!workshop_time;
+
+    // 如果嘉賓沒有報名任何工作坊，且提供了時段，則自動報名
+    if (!guest.workshop_type && workshop_time) {
+      // 驗證時段是否有效
+      const validTimes = ['1630', '1700', '1730', '1800'];
+      if (!validTimes.includes(workshop_time)) {
+        return c.json({ error: 'Invalid workshop time' }, 400);
+      }
+
+      // 自動報名調香工作坊
+      await c.env.DB
+        .prepare('UPDATE guests SET workshop_type = ?, workshop_time = ?, updated_at = datetime("now") WHERE id = ?')
+        .bind('perfume', workshop_time, guest.id)
+        .run();
+
+      // 更新 guest 對象
+      guest.workshop_type = 'perfume';
+      guest.workshop_time = workshop_time;
+    }
+
+    // 如果嘉賓已報名其他工作坊，則返回錯誤
+    if (guest.workshop_type && guest.workshop_type !== 'perfume') {
       return c.json({ 
-        error: '該嘉賓未選擇調香工作坊',
+        error: `該嘉賓已選擇${guest.workshop_type === 'leather' ? '皮革' : '其他'}工作坊，請前往對應工作坊簽到`,
+        guest: {
+          id: guest.id,
+          name: guest.name,
+          workshop_type: guest.workshop_type,
+          workshop_time: guest.workshop_time
+        }
+      }, 400);
+    }
+
+    // 如果嘉賓沒有報名且沒有提供時段，則返回錯誤
+    if (!guest.workshop_type || !guest.workshop_time) {
+      return c.json({ 
+        error: '該嘉賓未選擇調香工作坊，且未提供時段參數',
         guest: {
           id: guest.id,
           name: guest.name,
@@ -737,6 +808,7 @@ app.post('/api/workshop/perfume/checkin', async (c) => {
 
     return c.json({ 
       status: 'success',
+      auto_registered: autoRegistered, // 標記是否自動報名
       guest: {
         id: guest.id,
         name: guest.name,

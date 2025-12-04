@@ -134,10 +134,13 @@ function PerfumeWorkshopCheckinContent() {
     setSuccess(null);
     
     try {
-      // 調用調香工作坊簽到 API
+      // 調用調香工作坊簽到 API，傳遞當前時段
       const response = await apiRequest(API_ENDPOINTS.WORKSHOP_PERFUME_CHECKIN, {
         method: 'POST',
-        body: JSON.stringify({ token: tokenValue.trim() }),
+        body: JSON.stringify({ 
+          token: tokenValue.trim(),
+          workshop_time: activeTime // 傳遞當前選中的時段
+        }),
       });
 
       const result = await response.json();
@@ -145,30 +148,33 @@ function PerfumeWorkshopCheckinContent() {
       if (response.ok) {
         if (result.status === 'success') {
           setGuest(result.guest);
-          setSuccess('調香工作坊簽到成功！');
+          
+          // 如果自動報名，顯示特殊訊息
+          if (result.auto_registered) {
+            setSuccess(`✅ 已自動報名並簽到成功！調香工作坊 - ${getWorkshopTime(result.guest.workshop_time)}`);
+            setTimeout(() => {
+              setSuccess(`✅ 已自動報名並簽到成功！請發放：調香工作坊券 - ${getWorkshopTime(result.guest.workshop_time)}`);
+            }, 1000);
+          } else {
+            setSuccess('調香工作坊簽到成功！');
+            setTimeout(() => {
+              setSuccess(`調香工作坊簽到成功！請發放：調香工作坊券 - ${getWorkshopTime(result.guest.workshop_time)}`);
+            }, 1000);
+          }
           
           // 重新載入簽到列表
           loadCheckins();
-          
-          // 顯示工作坊券提示
-          setTimeout(() => {
-            setSuccess(`調香工作坊簽到成功！請發放：調香工作坊券 - ${getWorkshopTime(result.guest.workshop_time)}`);
-          }, 1000);
         } else if (result.status === 'duplicate') {
           setGuest(result.guest);
           setError('該嘉賓已經簽到調香工作坊了');
         }
       } else {
-        if (result.error === '該嘉賓未選擇調香工作坊') {
-          setGuest(result.guest);
-          const guestWorkshop = result.guest?.workshop_type;
-          if (guestWorkshop === 'leather') {
-            setError('❌ 該嘉賓選擇了皮革工作坊，請前往皮革工作坊簽到');
-          } else if (!guestWorkshop) {
-            setError('❌ 該嘉賓未選擇任何工作坊');
-          } else {
-            setError('❌ 該嘉賓未選擇調香工作坊');
-          }
+        setGuest(result.guest);
+        // 處理各種錯誤情況
+        if (result.error?.includes('已選擇')) {
+          setError(result.error);
+        } else if (result.error?.includes('未選擇')) {
+          setError(result.error);
         } else {
           setError(result.error || '簽到失敗');
         }
