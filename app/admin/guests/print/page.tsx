@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getApiUrl } from '@/lib/config';
 import { apiGet } from '@/lib/api';
+import JSZip from 'jszip';
 
 // Client-only component for date to avoid hydration mismatch
 function PrintTime() {
@@ -23,6 +24,7 @@ interface Guest {
   email: string;
   phone: string | null;
   guest_category: 'netcraft' | 'vip' | 'guest' | 'regular';
+  rsvp_status: 'pending' | 'confirmed' | 'declined';
   dinner: number;
   cocktail: number;
   vegetarian: number;
@@ -37,6 +39,8 @@ function PrintPageContent() {
   
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     const fetchGuests = async () => {
@@ -86,7 +90,93 @@ function PrintPageContent() {
     return filters.length > 0 ? filters.join(' | ') : '全部嘉賓';
   };
 
+  // 清理文件名，移除非法字符
+  const sanitizeFileName = (name: string): string => {
+    // 移除或替換文件名中的非法字符
+    return name
+      .replace(/[\/\\?%*:|"<>]/g, '_') // 替換非法字符為下劃線
+      .replace(/\s+/g, '_') // 替換空格為下劃線
+      .trim();
+  };
+
+  // 下載所有已確認嘉賓的 QR Code
+  const downloadAllQRCodes = async () => {
+    // 過濾出已確認的嘉賓
+    const confirmedGuests = guests.filter(g => g.rsvp_status === 'confirmed');
+    
+    if (confirmedGuests.length === 0) {
+      alert('沒有已確認的嘉賓可以下載 QR Code');
+      return;
+    }
+
+    setDownloading(true);
+    setDownloadProgress({ current: 0, total: confirmedGuests.length });
+
+    try {
+      const zip = new JSZip();
+      const apiBase = getApiUrl();
+      const nameCounts: Record<string, number> = {}; // 追蹤重名
+
+      // 為每個已確認的嘉賓下載 QR Code
+      for (let i = 0; i < confirmedGuests.length; i++) {
+        const guest = confirmedGuests[i];
+        setDownloadProgress({ current: i + 1, total: confirmedGuests.length });
+
+        try {
+          // 構建 QR Code URL
+          const qrUrl = `${apiBase}/qr/qr-${guest.id}.png`;
+          
+          // 下載 QR Code 圖片
+          const response = await fetch(qrUrl);
+          if (!response.ok) {
+            console.warn(`無法下載 ${guest.name} 的 QR Code: ${response.statusText}`);
+            continue;
+          }
+
+          const blob = await response.blob();
+          
+          // 處理文件名（處理重名情況）
+          let fileName = sanitizeFileName(guest.name);
+          if (nameCounts[fileName]) {
+            nameCounts[fileName]++;
+            fileName = `${fileName}_${nameCounts[fileName]}`;
+          } else {
+            nameCounts[fileName] = 1;
+          }
+          
+          // 添加到 ZIP
+          zip.file(`${fileName}.png`, blob);
+        } catch (error) {
+          console.error(`下載 ${guest.name} 的 QR Code 失敗:`, error);
+          // 繼續下載其他 QR Code
+        }
+      }
+
+      // 生成 ZIP 文件並下載
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qrcodes_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      alert(`成功下載 ${confirmedGuests.length} 個 QR Code！`);
+    } catch (error) {
+      console.error('下載 QR Code 失敗:', error);
+      alert('下載失敗，請稍後再試');
+    } finally {
+      setDownloading(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
+  };
+
   const apiBase = getApiUrl();
+  
+  // 計算已確認的嘉賓數量
+  const confirmedCount = guests.filter(g => g.rsvp_status === 'confirmed').length;
 
   if (loading) {
     return (
@@ -103,14 +193,40 @@ function PrintPageContent() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h2 className="text-lg font-semibold">批量打印嘉賓資料</h2>
-            <p className="text-sm text-gray-600">共 {guests.length} 位嘉賓 | {getFilterText()}</p>
+            <p className="text-sm text-gray-600">
+              共 {guests.length} 位嘉賓 | 已確認: {confirmedCount} 位 | {getFilterText()}
+            </p>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            打印
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={downloadAllQRCodes}
+              disabled={downloading || confirmedCount === 0}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {downloading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  下載中 ({downloadProgress.current}/{downloadProgress.total})
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  下載所有 QR Code ({confirmedCount})
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              打印
+            </button>
+          </div>
         </div>
       </div>
 
